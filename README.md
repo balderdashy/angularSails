@@ -9,10 +9,14 @@ AngularJS bindings for Sails.  http://angularjs.org
 
 The goal is to merge the best from the many diverse existing projects out there:
 
+##### SDKs
++ https://github.com/xdissent/spinnaker
 + http://snippetrepo.com/snippets/sailsjs-socket-service
 + https://github.com/kyjan/angular-sails
 
-
+##### Boilerplates
++ boilerplate: https://github.com/ryancp/sailng
++ boilerplate: https://github.com/balderdashy/sails-angular-seed
 
 ##### Other Angular-Sails resources:
 + http://www.slideshare.net/clonncd/20131216angularsails-in15mins
