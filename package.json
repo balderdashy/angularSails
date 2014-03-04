@@ -1,0 +1,31 @@
+{
+  "name": "angularSails",
+  "version": "0.0.0",
+  "description": "SailsJS SDK for AngularJS",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/balderdashy/angularSails.git"
+  },
+  "keywords": [
+    "Angular",
+    "AngularJS",
+    "Sails",
+    "SailJS",
+    "realtime"
+  ],
+  "authors": [
+    "Rob Wormald <rob.wormald@innitapps.com>"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/balderdashy/angularSails.git/issues"
+  },
+  "homepage": "https://github.com/balderdashy/angularSails.git"
+}
