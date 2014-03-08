@@ -1,0 +1,26 @@
+{
+  "name": "angularSails",
+  "version": "0.0.0",
+  "homepage": "https://github.com/balderdashy/angularSails",
+  "authors": [
+    "Rob Wormald <rob.wormald@innitapps.com>",
+    "Gabe Hernandez <ghernandez345@gmail.com>"
+  ],
+  "description": "SailsJS SDK for AngularJs",
+  "main": "angularSails.js",
+  "keywords": [
+    "Angular",
+    "AngularJS",
+    "Sails",
+    "SailsJS",
+    "realtime"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
