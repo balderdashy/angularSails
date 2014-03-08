@@ -291,7 +291,9 @@
       },
 
       /**
-       * Set up the listeners for.
+       * Hook up socket message listeners, will allow us to update the object when we recieve
+       * certain socket messages.
+       * TODO: More docs.
        */
       _setUpListeners: function () {
         var self = this,
