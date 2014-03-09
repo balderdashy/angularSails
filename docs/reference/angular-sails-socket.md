@@ -1,9 +1,17 @@
-## angularSails API (Proposed)
+## angularSails
 
-# angularSails
-This is the core angularSails module, and the only *required* module to use angularSails, other than the socket.io client.
+##THIS IS A PROTOTYPE - NOT FOR PRODUCTION USE !
+
+# sailsSocket
+This is the core communications module, and the only *required* module to use angularSails, other than the socket.io client.
 
 It exposes a `sailsSocketFactory` singleton that is used to open connection to a Sails instance.
+
+It returns an instance of a ` sailsSocket ` - a wrapped connection that:
+- adds http-style methods that return promises
+- integrates socket messages into Angular's digest loop, so you don't have to do $scope.$apply everywhere.
+- allows you to forward socket messages via Angular's $broadcast / $on event system.
+
 ## Usage
 
 
@@ -11,14 +19,14 @@ It exposes a `sailsSocketFactory` singleton that is used to open connection to a
 
 ```javascript
 // in the top-level module of the app
-angular.module('mySailsApp', ['angularSails']).
+angular.module('mySailsApp', ['angularSails.io']).
 factory('mySailsSocket', function (sailsSocketFactory)) {
   return sailsSocketFactory();
 });
 ```
 
 
-## SailsSocket API
+## sailsSocket API
 
 ### `socket.on` / `socket.addListener`
 Takes an event name and callback.
@@ -64,7 +72,7 @@ Simulates a GET request over Socket.io.
 Returns a promise.
 
 
-##sailsSocketFactory ` sailsSocketFactory( options ) `
+## sailsSocketFactory ` sailsSocketFactory( options ) `
 Factory that generates new sailsSocket connections. Allows connections to multiple Sails endpoints and returns a wrapped socket.io connection.
 
   ### `sailsSocketFactory({ ioSocket: }}`
@@ -87,13 +95,17 @@ factory('mySailsSocket', function (sailSocketFactory)) {
 });
 ```
 
-### `socketFactory({ scope: })`
+### `sailsSocketFactory({ baseUrl: })`
+
+This option allows you to set the url to use when connecting to Sails.
+
+### `sailsSocketFactory({ scope: })`
 
 This option allows you to set the scope on which `$broadcast` is forwarded to when using the `forward` method.
 It defaults to `$rootScope`.
 
 
-### `socketFactory({ prefix: })`
+### `sailsSocketFactory({ prefix: })`
 
 The default prefix is `sails:`.
 
