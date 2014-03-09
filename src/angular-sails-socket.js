@@ -1,6 +1,6 @@
 (function() {
 
-  var angularSails = angular.module('angularSails.socket', [])
+  var angularSailsIO = angular.module('angularSails.io', [])
 
 
   /**
@@ -17,9 +17,9 @@
    *
    * sails.io.js by Balderdashy : https://github.com/balderdashy/sails
    */
- 
+
   //decorate $q so we can use success/error
-  angularSails.config(['$provide',
+  angularSailsIO.config(['$provide',
     function($provide) {
       $provide.decorator('$q', function($delegate) {
         var defer = $delegate.defer;
@@ -44,7 +44,7 @@
     }
   ]);
 
-  angularSails.provider('sailsSocketFactory', function() {
+  angularSailsIO.provider('sailsSocketFactory', function() {
     var defaultPrefix = 'sails:',
       ioSocket;
 
