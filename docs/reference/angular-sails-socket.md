@@ -28,23 +28,23 @@ factory('mySailsSocket', function (sailsSocketFactory)) {
 
 ## sailsSocket API
 
-### `socket.on` / `socket.addListener`
+### `sailsSocket.on` / `socket.addListener`
 Takes an event name and callback.
 Works just like the method of the same name from Socket.IO.
 
-### `socket.removeListener`
+### `sailsSocket.removeListener`
 Takes an event name and callback.
 Works just like the method of the same name from Socket.IO.
 
-### `socket.emit`
+### `sailsSocket.emit`
 Sends a message to the server.
 Optionally takes a callback.
 
 Works just like the method of the same name from Socket.IO.
 
-### `socket.forward`
+### `sailsSocket.forward`
 
-`socket.forward` allows you to forward the events received by Socket.IO's socket to AngularJS's event system.
+`sailsSocket.forward` allows you to forward the events received by Socket.IO's socket to AngularJS's event system.
 You can then listen to the event with `$scope.$on`.
 By default, socket-forwarded events are namespaced with `sails:`.
 
@@ -55,34 +55,34 @@ As a reminder, broadcasted events are propagated down to descendant scopes.
 
 ####CRUD Functionality
 
-### `socket.get( url, queryParams)`
+### `sailsSocket.get( url, queryParams)`
 Simulates a GET request over Socket.io.
 Returns a promise.
 
-### `socket.post ( url, data )`
+### `sailsSocket.post ( url, data )`
 Simulates a GET request over Socket.io.
 Returns a promise.
 
-### `socket.put ( url, data )`
+### `sailsSocket.put ( url, data )`
 SSimulates a GET request over Socket.io.
 Returns a promise.
 
-### `socket.delete ( url, data )`
+### `sailsSocket.delete ( url, data )`
 Simulates a GET request over Socket.io.
 Returns a promise.
 
 
-## sailsSocketFactory ` sailsSocketFactory( options ) `
+###sailsSocketFactory ` sailsSocketFactory( options ) `
 Factory that generates new sailsSocket connections. Allows connections to multiple Sails endpoints and returns a wrapped socket.io connection.
 
-  ### `sailsSocketFactory({ ioSocket: }}`
+### `sailsSocketFactory({ ioSocket: }}`
 
 This option allows you to provide the `socket` service with a `Socket.IO socket` object to be used internally.
 This is useful if you want to connect on a different path, or need to hold a reference to the `Socket.IO socket` object for use elsewhere.
 
 ```javascript
 angular.module('mySailsApp', [
-  'angularSails'
+  'angularSails.io'
 ]).
 factory('mySailsSocket', function (sailSocketFactory)) {
   var myIoSocket = io.connect('/some/path');
