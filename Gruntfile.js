@@ -6,7 +6,7 @@ module.exports = function(grunt) {
   grunt.initConfig({
 
     angularSails: {
-      src: 'src/angularSails.js',
+      src: 'src/angular-sails-base.js',
       example: 'example/assets/js/deps/angularSails.js'
     },
 

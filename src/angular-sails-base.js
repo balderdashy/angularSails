@@ -1,3 +1,13 @@
+/**
+ * The base angular sails module.
+ *
+ */
+
+ /**
+  * The base angular sails module
+  * ------------------------------------------------------------------------
+  * More docs.
+  */
 (function() {
 
 /**
@@ -12,7 +22,7 @@ var angularSailsBase = angular.module('angularSails.base',['angularSails.socket'
  * ------------------------------------------------------------------------
  * Socket service that will be used by angular sails service,
  */
-angularSails.factory('angularSailsSocket', ['sailsSocketFactory', function (sailsSocket) {
+angularSailsBase.factory('angularSailsSocket', ['sailsSocketFactory', function (sailsSocket) {
   return sailsSocket();
 }]);
 
@@ -21,7 +31,7 @@ angularSails.factory('angularSailsSocket', ['sailsSocketFactory', function (sail
  * ------------------------------------------------------------------------
  *
  */
-angularSails.factory('$sailsBase', ['$q', 'angularSailsSocket', function ($q, sailsSocket) {
+angularSailsBas.factory('$sailsBase', ['$q', 'angularSailsSocket', function ($q, sailsSocket) {
 
   // Angular sails constructor.
   // NOTE: note sure we need $q in here.
@@ -57,14 +67,26 @@ angularSails.factory('$sailsBase', ['$q', 'angularSailsSocket', function ($q, sa
         });
       };
 
+      /**
+       * Update resource
+       * @return {[type]} [description]
+       */
       object.$update = function () {
 
       };
 
+      /**
+       * Remove resource
+       * @return {[type]} [description]
+       */
       object.$remove = function () {
 
       };
 
+      /**
+       * Save resource
+       * @return {[type]} [description]
+       */
       object.$save = function () {
 
       };
@@ -145,3 +167,5 @@ angularSails.factory('$sailsBase', ['$q', 'angularSailsSocket', function ($q, sa
   }
 
 }]);
+
+})();

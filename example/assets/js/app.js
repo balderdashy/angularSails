@@ -1,6 +1,6 @@
 (function () {
 
-  var app = angular.module('AngularSailsApp', ['angularSails']);
+  var app = angular.module('AngularSailsApp', ['angularSails.base']);
 
   app.controller('CommentCtrl', ['$scope', '$sails', function ($scope, $sails) {
 
