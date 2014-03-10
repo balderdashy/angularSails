@@ -35,7 +35,7 @@
       </li>
     </ul>
 
-    <textarea ng-keydown="addComment($event)" ng-model="newComment" placeholder="Enter your comment..."
+    <textarea ng-keyup="addComment($event)" ng-model="newComment" placeholder="Enter your comment..."
     autofocus></textarea>
     <p>Press enter to submit comment</p>
 
