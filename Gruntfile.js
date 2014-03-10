@@ -27,7 +27,7 @@ module.exports = function(grunt) {
     },
 
     watch: {
-      files: '<%= angularSails.base %>',
+      files: ['<%= angularSails.base %>', '<%= angularSails.socket %>'],
       tasks: ['concat', 'copy']
     }
   });
@@ -39,7 +39,7 @@ module.exports = function(grunt) {
   grunt.registerTask('default', ['dev']);
 
   // Dev enviroment for copying over changes from src to example project.
-  grunt.registerTask('dev', ['watch']);
+  grunt.registerTask('dev', ['copy', 'watch']);
 
 
 }

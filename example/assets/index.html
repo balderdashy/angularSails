@@ -19,6 +19,9 @@
       <li ng-repeat="comment in comments">
         comment body: {{comment.body}}
         <a href="" ng-click="deleteComment(comment)">x</a>
+        <a href="" ng-click="editingComment = !editingComment">edit</a>
+        <input ng-show="editingComment" ng-model="comment.body"/>
+        <button ng-show="editingComment"ng-click="updateComments(comment); editingComment = !editingComment">update</button>
       </li>
     </ul>
 
