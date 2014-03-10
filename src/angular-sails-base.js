@@ -30,10 +30,11 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
 
   // Angular sails constructor.
   // NOTE: note sure we need $q in here.
-  AngularSails = function ($q, sailsSocket, url) {
+  AngularSails = function ($q, sailsSocket, url, query) {
     this.q = $q;
     this.sailsSocket = sailsSocket;
     this.url = url;
+    this.query = query
   }
 
   // Angular sails prototype.
@@ -133,7 +134,7 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
      */
     _getInitalData: function () {
       var self = this;
-      var data = self.sailsSocket.get(self.url);
+      var data = self.sailsSocket.get(self.url, self.query);
 
       // Assign the values to the object.
       data.then(function (res) {
@@ -223,8 +224,8 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
 
   // Our angular sails service returns a function that creates an angular sails
   // instance and hooks it up to the resource at the passed in url.
-  return function (url) {
-    var angularSails = new AngularSails($q, sailsSocket, url);
+  return function (url, query) {
+    var angularSails = new AngularSails($q, sailsSocket, url, query);
     return angularSails.construct();
   }
 
