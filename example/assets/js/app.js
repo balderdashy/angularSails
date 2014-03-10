@@ -16,6 +16,10 @@
       $scope.newComment = '';
     };
 
+    $scope.deleteComment = function (comment) {
+      $scope.comments.$remove(comment);
+    }
+
   }]);
 
 })();

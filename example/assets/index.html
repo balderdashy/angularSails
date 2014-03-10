@@ -16,7 +16,10 @@
 
     <p ng-show="!comments.length">There are no comments</p>
     <ul ng-cloak>
-      <li ng-repeat="comment in comments">comment body: {{comment.body}}</li>
+      <li ng-repeat="comment in comments">
+        comment body: {{comment.body}}
+        <a href="" ng-click="deleteComment(comment)">x</a>
+      </li>
     </ul>
 
     <textarea ng-keydown="addComment($event)" ng-model="newComment"></textarea>

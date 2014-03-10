@@ -267,11 +267,20 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
       };
 
       /**
-       * Remove resource
+       * Remove resource or optionally remove all resources .
        * @return {[type]} [description]
+       *
+       * TODO: handle no key being passed. Should this delete all records in this collection?
        */
-      object.$remove = function () {
-
+      object.$remove = function (key) {
+        var model = self._getModel(key);
+        if (model) {
+          self.sailsSocket.delete(self.url, model).then(function (res) {
+            self._updateModel(res.id, res);
+          });
+        } else {
+          self.sailsSocket.delete(self.url);
+        }
       };
 
       /**
@@ -307,11 +316,31 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
     },
 
     /**
+     * Get the model out of the collection by its key
+     *
+     * @param  {[type]} key [description]
+     *
+     * @return {[type]}     [description]
+     *
+     * * TODO: handle key being string or number.
+     */
+    _getModel: function (key) {
+
+      // Key is object.
+      if (angular.isObject(key)) {
+        var model = this._object[key.id];
+      }
+
+      // Key is number or string.
+      return model;
+    },
+
+    /**
      * Update the model. Places model onto the object, making it accessable in the scope.
      * TODO: More docs.
      */
     _updateModel: function (key, val) {
-      if (val == null) {
+      if (!angular.isUndefined(this._object[key])) {
         delete this._object[key];
       } else {
         this._object[key] = val;
@@ -330,7 +359,8 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
       self.sailsSocket.on(model, function (obj) {
 
         var verb = obj.verb,
-            data = obj.data;
+            data = obj.data,
+            previous = obj.previous;
 
         switch (verb) {
 
@@ -341,8 +371,9 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
           // case 'updated':
           //   break;
 
-          // case 'destroyed':
-          //   break;
+          case 'destroyed':
+            self._updateModel(previous.id, previous);
+            break;
         }
 
       });
@@ -359,4 +390,46 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
 
 }]);
 
+
+/**
+ * Order by id filter
+ * ------------------------------------------------------------------------
+ * Define the `orderById` filter that sorts objects returned by
+ * $sails in the order of priority.
+ */
+// angularSailsBase.filter("orderById", function() {
+//   return function(input) {
+//     var sorted = [];
+
+//     if (input) {
+//       if (!input.$getIndex || typeof input.$getIndex != "function") {
+//         // input is not an angularFire instance
+//         if (angular.isArray(input)) {
+//           // If input is an array, copy it
+//           sorted = input.slice(0);
+//         } else if (angular.isObject(input)) {
+//           // If input is an object, map it to an array
+//           angular.forEach(input, function(prop) {
+//             sorted.push(prop);
+//           });
+//         }
+//       } else {
+//         // input is an angularFire instance
+//         var index = input.$getIndex();
+//         if (index.length > 0) {
+//           for (var i = 0; i < index.length; i++) {
+//             var val = input[index[i]];
+//             if (val) {
+//               val.$id = index[i];
+//               sorted.push(val);
+//             }
+//           }
+//         }
+//       }
+//     }
+//     return sorted;
+//   };
+// });
+
 })();
+
