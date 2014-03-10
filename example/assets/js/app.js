@@ -21,8 +21,13 @@
       $scope.comments.$remove(comment);
     };
 
-    $scope.updateComments = function (comment) {
+    // Update a comment.
+    $scope.updateComment = function (comment) {
       $scope.comments.$update(comment);
+
+      // TODO: ideally I'd like to get this to a point that looked like the code below
+      //
+      // comment.$update();
     };
 
   }]);
