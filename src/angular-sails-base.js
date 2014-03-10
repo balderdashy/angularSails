@@ -1,13 +1,8 @@
 /**
- * The base angular sails module.
- *
+ * The base angular sails module
+ * ------------------------------------------------------------------------
+ * description.
  */
-
- /**
-  * The base angular sails module
-  * ------------------------------------------------------------------------
-  * More docs.
-  */
 (function() {
 
 /**
@@ -15,7 +10,7 @@
  * ------------------------------------------------------------------------
  *
  */
-var angularSailsBase = angular.module('angularSails.base',['angularSails.socket'])
+var angularSailsBase = angular.module('angularSails.base', ['angularSails.io'])
 
 /**
  * Angular sails socket service
@@ -31,7 +26,7 @@ angularSailsBase.factory('angularSailsSocket', ['sailsSocketFactory', function (
  * ------------------------------------------------------------------------
  *
  */
-angularSailsBas.factory('$sailsBase', ['$q', 'angularSailsSocket', function ($q, sailsSocket) {
+angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sailsSocket) {
 
   // Angular sails constructor.
   // NOTE: note sure we need $q in here.
