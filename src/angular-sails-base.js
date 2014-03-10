@@ -115,8 +115,6 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
         if (angular.isUndefined(key)) {
           self.sailsSocket.put(self.url, this)
         }
-
-
       };
 
       self._object = object;
@@ -180,7 +178,7 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
      * TODO: More docs.
      */
     _updateModel: function (key, val, verb) {
-      if (verb != 'destroyed') {
+      if (verb !== 'destroyed') {
         this._object[key] = val;
       } else {
         delete this._object[key];
