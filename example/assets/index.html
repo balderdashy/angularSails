@@ -9,23 +9,35 @@
       [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
         display: none !important;
       }
+
+      ul {
+        list-style: none;
+      }
+
+      textarea {
+        width: 300px;
+        height: 150px;
+        resize: none;
+      }
     </style>
   </head>
 
   <body ng-controller="CommentCtrl">
 
-    <p ng-show="!comments.length">There are no comments</p>
+    <h1>Comments:</h1>
     <ul ng-cloak>
       <li ng-repeat="comment in comments">
-        comment body: {{comment.body}}
+        comment: {{comment.body}}
         <a href="" ng-click="deleteComment(comment)">x</a>
-        <a href="" ng-click="editingComment = !editingComment">edit</a>
-        <input ng-show="editingComment" ng-model="comment.body"/>
-        <button ng-show="editingComment"ng-click="updateComment(comment); editingComment = !editingComment">update</button>
+        <a href="" ng-click="editing = !editing">edit</a>
+        <input ng-show="editing" ng-model="comment.body"/>
+        <button ng-show="editing"ng-click="updateComment(comment); editing = !editing">update</button>
       </li>
     </ul>
 
-    <textarea ng-keydown="addComment($event)" ng-model="newComment"></textarea>
+    <textarea ng-keydown="addComment($event)" ng-model="newComment" placeholder="Enter your comment..."
+    autofocus></textarea>
+    <p>Press enter to submit comment</p>
 
     <!-- dependencies -->
     <script src="js/deps/socket.io.js"></script>

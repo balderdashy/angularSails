@@ -239,7 +239,8 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
      * Constuct method creates an object that will be applied to the scope. This will give
      * the scope some methods it can use to perform 3 way data binding operations.
      *
-     * @return {Object} [Sails thing]
+     * @return {Object} [Angular Sails object that represents a resource and offers methods to
+     *                   manipulate data at the specified url]
      */
     construct: function () {
       var self = this,
@@ -249,9 +250,9 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
 
       /**
        * Add resource to collection
+       * TODO: support primative types and arrays?
        *
        * @param {Object} data [Data that will be added to resource collection]
-       * TODO: support primative types?
        */
       object.$add = function (data) {
         self.sailsSocket.post(self.url, data).then(function (res) {
@@ -261,10 +262,10 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
 
       /**
        * Update resource in collection.
-       * @return {[type]} [description]
-       *
-       * TODO: handle no key being passed. Im thinking this will update entire collection or
+       * TODO: Handle no key being passed. Im thinking this will update entire collection or
        * the individual model its called on.
+       *
+       * @param  {Object|String|Number} key [Key representing model.]
        */
       object.$update = function (key) {
         if (angular.isUndefined(key)) {
@@ -278,10 +279,10 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
       };
 
       /**
-       * Remove resource or optionally remove all resources .
-       * @return {[type]} [description]
-       *
+       * Remove resource or optionally remove all resources.
        * TODO: handle no key being passed. Should this delete all records in this collection?
+       *
+       * @param  {Object|String|Number} key [Key representing model.]
        */
       object.$remove = function (key) {
 
@@ -303,8 +304,8 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
        * Save resource
        * @return {[type]} [description]
        *
-       * TODO: handle case where argument is passed in. I think each child is going to have
-       * to be an instance of an angular sails object. Come back and implement that later.
+       * TODO: Handle case where argument is passed in. I think each child is going to have
+       * to be an instance of an angular sails object. Come back and implement this method later.
        */
       object.$save = function (key) {
 
@@ -320,8 +321,11 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
     },
 
     /**
-     * Gets the inital data from the server.
-     * @return {[type]} [description]
+     * Gets the inital data from the server. With this inital data we populate an object that
+     * represents this angular sails collection.
+     *
+     * TODO: Think about also populating a seperate resource collection array, just so
+     * users have access to raw data response that's recieved.
      */
     _getInitalData: function () {
       var self = this;
@@ -340,11 +344,13 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
     /**
      * Get the model out of the collection by its key
      *
-     * @param  {[type]} key [description]
+     * @param  {Object|String|Number} key [Key can be multiple arguments. The first being an
+     *                                     object that represents the model. The most important
+     *                                     thing about this obect is that it contains the unique
+     *                                     id. Users can also pass back a string of the unique id
+     *                                     or simply a number of the id.]
      *
-     * @return {[type]}     [description]
-     *
-     * * TODO: handle key being string or number.
+     * @return {Object}     [the object in this collection.]
      */
     _getModel: function (key) {
 
@@ -373,6 +379,17 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
      * Update the model. Places model onto the object, making it accessable in the scope.
      * TODO: More docs.
      */
+    /**
+     * Updates the current model. We create the new key/value pair onto the object or override the
+     * current value if the key is already there. Depending on the verb recieved, we handle
+     * the updating of the model differently. Right now the only verb that acts different is
+     * 'destroyed'.
+     *
+     * @param  {Number} key  [This key is the unique id of the model]
+     * @param  {Object} val  [An object that represents the model]
+     * @param  {String} verb [A verb used to determin how to update the model. Possible values
+     *                        are 'created', 'read', 'updated', and 'destoryed']
+     */
     _updateModel: function (key, val, verb) {
       if (verb !== 'destroyed') {
         this._object[key] = val;
@@ -382,9 +399,8 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
     },
 
     /**
-     * Hook up socket message listeners, will allow us to update the object when we recieve
+     * Hook up socket message listeners, will allow us to update local models when we recieve
      * certain socket messages.
-     * TODO: More docs.
      */
     _setUpListeners: function () {
       var self = this,
@@ -409,47 +425,6 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
   }
 
 }]);
-
-
-/**
- * Order by id filter
- * ------------------------------------------------------------------------
- * Define the `orderById` filter that sorts objects returned by
- * $sails in the order of priority.
- */
-// angularSailsBase.filter("orderById", function() {
-//   return function(input) {
-//     var sorted = [];
-
-//     if (input) {
-//       if (!input.$getIndex || typeof input.$getIndex != "function") {
-//         // input is not an angularFire instance
-//         if (angular.isArray(input)) {
-//           // If input is an array, copy it
-//           sorted = input.slice(0);
-//         } else if (angular.isObject(input)) {
-//           // If input is an object, map it to an array
-//           angular.forEach(input, function(prop) {
-//             sorted.push(prop);
-//           });
-//         }
-//       } else {
-//         // input is an angularFire instance
-//         var index = input.$getIndex();
-//         if (index.length > 0) {
-//           for (var i = 0; i < index.length; i++) {
-//             var val = input[index[i]];
-//             if (val) {
-//               val.$id = index[i];
-//               sorted.push(val);
-//             }
-//           }
-//         }
-//       }
-//     }
-//     return sorted;
-//   };
-// });
 
 })();
 
