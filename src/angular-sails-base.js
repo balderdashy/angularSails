@@ -47,7 +47,8 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
      */
     construct: function () {
       var self = this,
-          object = {};
+          object = {},
+          resourceCollection = [];
 
 
       /**
@@ -58,16 +59,26 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
        */
       object.$add = function (data) {
         self.sailsSocket.post(self.url, data).then(function (res) {
-          self._updateModel(res.id, res);
+          self._updateModel(res.id, res, 'created');
         });
       };
 
       /**
-       * Update resource
+       * Update resource in collection.
        * @return {[type]} [description]
+       *
+       * TODO: handle no key being passed. Im thinking this will update entire collection or
+       * the individual model its called on.
        */
-      object.$update = function () {
+      object.$update = function (key) {
+        if (angular.isUndefined(key)) {
 
+        }
+
+        var model = self._getModel(key);
+        self.sailsSocket.put(self.url + '/' + model.id, model).then(function (res) {
+          self._updateModel(res.id, res, 'updated');
+        });
       };
 
       /**
@@ -77,10 +88,15 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
        * TODO: handle no key being passed. Should this delete all records in this collection?
        */
       object.$remove = function (key) {
+
+        if (angular.isUndefined(key)) {
+
+        }
+
         var model = self._getModel(key);
         if (model) {
           self.sailsSocket.delete(self.url, model).then(function (res) {
-            self._updateModel(res.id, res);
+            self._updateModel(res.id, res, 'destroyed');
           });
         } else {
           self.sailsSocket.delete(self.url);
@@ -90,8 +106,16 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
       /**
        * Save resource
        * @return {[type]} [description]
+       *
+       * TODO: handle case where argument is passed in. I think each child is going to have
+       * to be an instance of an angular sails object. Come back and implement that later.
        */
-      object.$save = function () {
+      object.$save = function (key) {
+
+        if (angular.isUndefined(key)) {
+          self.sailsSocket.put(self.url, this)
+        }
+
 
       };
 
@@ -112,7 +136,7 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
       // Assign the values to the object.
       data.then(function (res) {
         angular.forEach(res, function (model) {
-          self._updateModel(model.id, model);
+          self._updateModel(model.id, model, 'read');
         });
         self._setUpListeners();
       });
@@ -130,12 +154,24 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
      */
     _getModel: function (key) {
 
+      var modelId,
+          model = {};
+
       // Key is object.
       if (angular.isObject(key)) {
-        var model = this._object[key.id];
+        modelId = key.id;
+      }
+      else if (angular.isString(key)) {
+        modelId = parseInt(key, 10);
+      }
+      else if (angular.isNumber(key)) {
+        modelId = key;
+      }
+      else {
+        return model;
       }
 
-      // Key is number or string.
+      model = this._object[modelId];
       return model;
     },
 
@@ -143,11 +179,11 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
      * Update the model. Places model onto the object, making it accessable in the scope.
      * TODO: More docs.
      */
-    _updateModel: function (key, val) {
-      if (!angular.isUndefined(this._object[key])) {
-        delete this._object[key];
-      } else {
+    _updateModel: function (key, val, verb) {
+      if (verb != 'destroyed') {
         this._object[key] = val;
+      } else {
+        delete this._object[key];
       }
     },
 
@@ -163,23 +199,9 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
       self.sailsSocket.on(model, function (obj) {
 
         var verb = obj.verb,
-            data = obj.data,
-            previous = obj.previous;
+            data = obj.data || obj.previous;
 
-        switch (verb) {
-
-          case 'created':
-            self._updateModel(data.id, data);
-            break;
-
-          // case 'updated':
-          //   break;
-
-          case 'destroyed':
-            self._updateModel(previous.id, previous);
-            break;
-        }
-
+        self._updateModel(data.id, data, verb);
       });
     }
   }
