@@ -11,7 +11,7 @@
 
     <span ng-show="comments.length">There are no comments</span>
     <ul>
-      <li ng-repeat="(commentId, comment) in comments">body: {{comment.body}}</li>
+      <li ng-repeat="comment in comments">body: {{comment.body}}</li>
     </ul>
 
     <textarea ng-keydown="addComment($event)" ng-model="newComment"></textarea>
