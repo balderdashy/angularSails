@@ -11,6 +11,8 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
+      'vendor/angular/angular.js',
+      'vendor/angular-mocks/angular-mocks.js',
       'dist/angularSails.min.js', //first, load non-root modules so that root has it's dependencies
       'tests/**/*.spec.js'
     ],

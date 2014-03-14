@@ -22,5 +22,10 @@
     "bower_components",
     "test",
     "tests"
-  ]
+  ],
+  "devDependencies": {
+    "angular-mocks": "~1.2.14",
+    "underscore": "~1.6.0"
+  },
+  "dependencies": {}
 }

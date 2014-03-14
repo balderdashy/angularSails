@@ -77,6 +77,15 @@ module.exports = function(grunt) {
           atBegin: true
         }
       }
+    },
+
+    karma: {
+      precompile: {
+        configFile: 'karma.precompile.conf.js'
+      },
+      postcompile: {
+        configFile: 'karma.postcompile.conf.js'
+      }
     }
 
   });
