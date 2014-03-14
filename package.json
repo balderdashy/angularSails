@@ -30,6 +30,7 @@
   "bugs": {
     "url": "https://github.com/balderdashy/angularSails.git/issues"
   },
+
   "homepage": "https://github.com/balderdashy/angularSails.git",
   "devDependencies": {
     "grunt": "~0.4.2",
