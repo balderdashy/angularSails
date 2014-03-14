@@ -7,7 +7,6 @@
     "doc": "docs"
   },
   "scripts": {
-    "postinstall": "bower install",
     "test": "./node_modules/.bin/grunt build"
   },
   "repository": {
