@@ -84,7 +84,7 @@ This is useful if you want to connect on a different path, or need to hold a ref
 angular.module('mySailsApp', [
   'angularSails.io'
 ]).
-factory('mySailsSocket', function (sailSocketFactory)) {
+factory('mySailsSocket', function (sailsSocketFactory)) {
   var myIoSocket = io.connect('/some/path');
 
   mySocket = sailsSocketFactory({
