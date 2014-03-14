@@ -202,11 +202,45 @@
 (function() {
 
 /**
- * The angular sailsBase module will provide firebase-like functionality
+ * The angular sailsBase module.
  * ------------------------------------------------------------------------
  *
  */
 var angularSailsBase = angular.module('angularSails.base', ['angularSails.io'])
+
+// Define the `orderByPriority` filter that sorts objects returned by
+// $firebase in the order of priority. Priority is defined by Firebase,
+// for more info see: https://www.firebase.com/docs/ordered-data.html
+
+/**
+ * An angular filte that allows you map collection reourcesto arrays
+ * ------------------------------------------------------------------------
+ * Right now collections are represented by objects. Doing this allows us to place methods that
+ * you can call on the scope variable. A draw back though, is there is no guaranteed order to the
+ * items in this collection. Waterline will send back an ordered collection but this doesnt help us
+ * when the client ignores the ordering. This filter allows a way to create an array out of the
+ * models in the collection and thus, guarantees an order as well as the ability to manipulate and
+ * filter the array with other angular filters.
+ */
+angularSailsBase.filter("collectionToArray", function() {
+  return function(input) {
+    var collectionArray = [];
+
+
+
+    // Map object to array. Right now we check that the model key name is a number. If it is
+    // we know that the key value pair represents a model in the collection.
+    // There is probably a better way to do this like adding cid prefix to value names.
+    // TODO: come back and think of a more elegant way to do this.
+    angular.forEach(input, function(val, key) {
+      if (!isNaN(key)) {
+        collectionArray.push(val);
+      }
+    });
+    return collectionArray;
+  };
+});
+
 
 /**
  * Angular sails socket service
@@ -385,8 +419,7 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
       /**
        * Add resource to collection
        * TODO: support primative types and arrays? Not sure this will work well. Sails
-       * is more resource based and not like firebase which is more like a bucket you can throw
-       * anything into.
+       * is more resource based.
        *
        * @param {Object} data [Data that will be added to resource collection]
        */
@@ -427,8 +460,6 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
 
         }
 
-        console.log(key);
-
         var model = self._getModel(key);
         if (model) {
           self.sailsSocket.delete(self.url, model).then(function (res) {
@@ -442,7 +473,7 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
       angular.extend(self._resource, object);
 
       angular.forEach(data, function (model) {
-        self._assignCid(model);
+        var model = self._constructModel(model);
         self._updateModel(model.cid, model, 'read');
       });
       self._setUpListeners();
@@ -454,8 +485,8 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
      * @return {[type]}      [description]
      */
     _constructModel: function (data) {
-
-      var object = {};
+      var self = this;
+          model = data;
 
       /**
        * Update resource in collection.
@@ -464,14 +495,13 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
        *
        * @param  {Object|String|Number} key [Key representing model.]
        */
-      object.$update = function (key) {
-        if (angular.isUndefined(key)) {
+      model.$update = function () {
 
-        }
-
-        var model = self._getModel(key);
+        var cid = model.cid;
         self.sailsSocket.put(self.url + '/' + model.id, model).then(function (res) {
-          self._updateModel(res.id, res, 'updated');
+          res.cid = cid;
+          self._constructModel(res);
+          self._updateModel(res.cid, res, 'updated');
         });
       };
 
@@ -481,23 +511,19 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
        *
        * @param  {Object|String|Number} key [Key representing model.]
        */
-      object.$remove = function (key) {
-
-        if (angular.isUndefined(key)) {
-
-        }
-
-        var model = self._getModel(key);
-        if (model) {
-          self.sailsSocket.delete(self.url, model).then(function (res) {
-            self._updateModel(res.id, res, 'destroyed');
-          });
-        } else {
-          self.sailsSocket.delete(self.url);
-        }
+      model.$remove = function () {
+        var cid = model.cid;
+        self.sailsSocket.delete(self.url, model).then(function (res) {
+          self._updateModel(cid, res, 'destroyed');
+        });
       };
 
-      return object;
+      // assign a cid to new models.
+      if (!model.cid) {
+        self._assignCid(model);
+      }
+
+      return model;
     }
   }
 

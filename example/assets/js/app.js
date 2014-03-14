@@ -23,18 +23,14 @@
     // Remove a comment.
     $scope.deleteComment = function (comment) {
       $scope.comments.$remove(comment);
-
-      // TODO: ideally I'd like to get this to a point that looked like the code below
-      //
+      // Now you can also update a comment like this:
       // comment.$remove();
     };
 
     // Update a comment.
     $scope.updateComment = function (comment) {
       $scope.comments.$update(comment);
-
-      // TODO: ideally I'd like to get this to a point that looked like the code below
-      //
+      // Now you can also update a comment like this:
       // comment.$update();
     };
 

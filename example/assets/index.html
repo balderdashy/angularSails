@@ -26,8 +26,8 @@
 
     <h1>Comments:</h1>
     <ul ng-cloak>
-      <li ng-repeat="comment in comments">
-        comment: {{comment}}
+      <li ng-repeat="comment in comments | collectionToArray">
+        comment: {{comment.body}} cid: {{comment.cid}}
         <a href="" ng-click="deleteComment(comment)">x</a>
         <a href="" ng-click="editing = !editing">edit</a>
         <input ng-show="editing" ng-model="comment.body"/>
