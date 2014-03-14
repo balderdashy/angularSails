@@ -7,7 +7,7 @@
     "doc": "docs"
   },
   "scripts": {
-    "test": "./node_modules/.bin/grunt build"
+    "test": "grunt build"
   },
   "repository": {
     "type": "git",
