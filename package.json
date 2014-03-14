@@ -7,7 +7,7 @@
     "doc": "docs"
   },
   "scripts": {
-    "postinstall": "./node_modules/.bin/bower install",
+    "postinstall": "bower install",
     "test": "./node_modules/.bin/grunt build"
   },
   "repository": {
@@ -39,7 +39,6 @@
     "grunt-contrib-uglify": "~0.4.0",
     "grunt-contrib-jshint": "~0.9.2",
     "grunt-karma": "~0.8.0",
-    "grunt-cli": "~0.1.13",
     "grunt-ng-constant": "~0.4.8",
     "grunt-newer": "~0.6.1",
     "jshint-stylish": "~0.1.5",
