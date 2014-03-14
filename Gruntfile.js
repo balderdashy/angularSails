@@ -8,13 +8,18 @@ module.exports = function(grunt) {
     angularSails: {
       base: 'src/angular-sails-base.js',
       socket: 'src/angular-sails-socket.js',
+      utils: 'src/utils/*.js',
       example: 'example/assets/js/deps/angularSails.js',
       dist: 'dist/angularSails.js'
     },
 
     concat: {
       dev: {
-        src: ['<%= angularSails.socket %>', '<%= angularSails.base %>'],
+        src: [
+          '<%= angularSails.utils %>',
+          '<%= angularSails.socket %>',
+          '<%= angularSails.base %>'
+        ],
         dest: '<%= angularSails.dist %>'
       }
     },
@@ -27,7 +32,7 @@ module.exports = function(grunt) {
     },
 
     watch: {
-      files: ['<%= angularSails.base %>', '<%= angularSails.socket %>'],
+      files: ['src/**/*.js'],
       tasks: ['concat', 'copy']
     }
   });
