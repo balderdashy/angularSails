@@ -24,8 +24,10 @@
     "tests"
   ],
   "devDependencies": {
-    "angular-mocks": "~1.2.14",
-    "underscore": "~1.6.0"
+    "angular-mocks": "~1.2.14"
   },
-  "dependencies": {}
+  "dependencies": {
+    "underscore": "~1.6.0",
+    "angular": "~1.2.14"
+  }
 }
