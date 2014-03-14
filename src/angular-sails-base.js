@@ -10,7 +10,8 @@
  * ------------------------------------------------------------------------
  *
  */
-var angularSailsBase = angular.module('angularSails.base', ['angularSails.io'])
+var angularSailsBase = angular.module('angularSails.base',
+  ['angularSails.io', 'sailsBaseCollection'])
 
 // Define the `orderByPriority` filter that sorts objects returned by
 // $firebase in the order of priority. Priority is defined by Firebase,
@@ -49,7 +50,7 @@ angularSailsBase.filter("collectionToArray", function() {
  * ------------------------------------------------------------------------
  * Socket service that will be used by angular sails service,
  */
-angularSailsBase.factory('angularSailsSocket', ['sailsSocketFactory', function (sailsSocket) {
+angularSailsBase.factory('angularSailsSocket',['sailsSocketFactory', function (sailsSocket) {
   return sailsSocket();
 }]);
 
@@ -58,18 +59,21 @@ angularSailsBase.factory('angularSailsSocket', ['sailsSocketFactory', function (
  * ------------------------------------------------------------------------
  *
  */
-angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sailsSocket) {
+angularSailsBase.factory('$sails',
+  ['$q', 'angularSailsSocket', 'collectionUtils', function ($q, sailsSocket, collectionUtils) {
 
   // Angular sails constructor.
   // NOTE: note sure we need $q in here.
-  AngularSails = function ($q, sailsSocket, url, query) {
+  AngularSails = function ($q, sailsSocket, collectionUtils, url, query) {
     this.q = $q;
     this.sailsSocket = sailsSocket;
+    this.collectionUtils = collectionUtils
     this.url = url;
     this.query = query;
     this._resource = {};
     this.collectionCounter = 0;
     this._reourceId = this.url.slice(1)  // identifier of what resource we are using.
+    this.socketModelCid = undefined;
   }
 
   // Angular sails prototype.
@@ -173,16 +177,37 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
      * the updating of the model differently. Right now the only verb that acts different is
      * 'destroyed'.
      *
-     * @param  {Number} key  [This key is the unique id of the model]
-     * @param  {Object} val  [An object that represents the model]
-     * @param  {String} verb [A verb used to determin how to update the model. Possible values
-     *                        are 'created', 'read', 'updated', and 'destoryed']
+     * @param  {Object} val         [An object that represents the model.]
+     * @param  {String} verb        [A verb used to determin how to update the model. Possible
+     *                               values are 'created', 'read', 'updated', and 'destoryed'.]
+     * @param  {Boolean} fromSocket  [Boolean so we know if update is from socket message.]
      */
-    _updateModel: function (key, val, verb) {
+    _updateModel: function (data, verb, fromSocket) {
+      var model;
+
+      // Create a new model on creates and reads
+      if (verb === 'read' || verb === 'created') {
+        data.$collection =  this._resource;
+        model = this._constructModel(data);
+      }
+
+      // Just pass down the model on updates and destroys.
+      else if (verb === 'updated' || verb === 'destroyed') {
+
+        // If from a socket message,
+        if (fromSocket) {
+          model = collectionUtils.findWhere(this._resource, {createdAt: data.createdAt});
+        } else {
+          model = data;
+        }
+      }
+
+
+      // eplace or add value at unique cid key for everything but destroys.
       if (verb !== 'destroyed') {
-        this._resource[key] = val;
+        this._resource[model.cid] = model;
       } else {
-        delete this._resource[key];
+        delete this._resource[model.cid];
       }
     },
 
@@ -196,40 +221,16 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
 
       self.sailsSocket.on(model, function (obj) {
 
-        console.log(obj);
-
         var verb = obj.verb,
-            data = obj.data || obj.previous;
+            data = obj.data || obj.previous,
+            fromSocket = true;
 
-        var model = self._constructModel(data);
-        self._updateModel(model.cid, data, verb);
+        self._updateModel(data, verb, fromSocket);
       });
     },
 
     _setModelListeners: function () {
 
-    },
-
-    /**
-     * Hook up socket message listeners, will allow us to update local models when we recieve
-     * certain socket messages.
-     */
-    _setUpListeners: function () {
-      var self = this,
-          model = self.url.slice(1);
-
-      console.log(model);
-
-      self.sailsSocket.on(model, function (obj) {
-
-        console.log(obj);
-
-        var verb = obj.verb,
-            data = obj.data || obj.previous;
-
-        var model = self._constructModel(data);
-        self._updateModel(model.cid, data, verb);
-      });
     },
 
     /**
@@ -259,9 +260,7 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
        */
       object.$add = function (data) {
         self.sailsSocket.post(self.url, data).then(function (res) {
-          res.$collection = self._resource;
-          var newModel = self._constructModel(res)
-          self._updateModel(newModel.cid, newModel, 'created');
+          self._updateModel(res, 'created');
         });
       };
 
@@ -278,7 +277,8 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
 
         self.sailsSocket.put(self.url + '/' + attrs.id, attrs).then(function (res) {
           var updatedModel = angular.extend(res, model);
-          self._updateModel(updatedModel.cid, updatedModel, 'updated');
+          self.socketModelCid = model.cid;
+          self._updateModel(updatedModel, 'updated');
         });
       };
 
@@ -297,12 +297,13 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
        * @param  {Object|String|Number} key [Key representing model.]
        */
       object.$remove = function (key) {
-        var model = self._getModel(key),
-            cid = model.cid;
+        var cid = key.cid,
+            model = self._getModel(key),
+            attrs = self._getAttributes(model);
 
-        self.sailsSocket.delete(self.url, {id: model.id}).then(function (res) {
-          console.log('delete response', res);
-          self._updateModel(cid, res, 'destroyed');
+        self.sailsSocket.delete(self.url, attrs).then(function (res) {
+          self.socketModelCid = model.cid;
+          self._updateModel(model, 'destroyed');
         });
       };
 
@@ -311,10 +312,7 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
       // Make a model for each item in the collection. We want to give each model a reference to
       // its parent collection.
       angular.forEach(data, function (model) {
-        model.$collection =  self._resource;
-
-        var collectionModel = self._constructModel(model);
-        self._updateModel(collectionModel.cid, model, 'read');
+        self._updateModel(model, 'read');
       });
 
       self._setCollectionListeners();
@@ -337,7 +335,7 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
        *
        * @param  {Object|String|Number} key [Key representing model.]
        */
-      model.$update = function () {
+      model.$update = model.$save = function () {
 
         if (hasCollection()) {
           model.$collection.$update(model);
@@ -375,8 +373,6 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
         self._assignCid(model);
       }
 
-      // self._setUpListeners();
-
       return model;
     }
   }
@@ -385,7 +381,7 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
   // Our angular sails service returns a function that creates an angular sails
   // instance and hooks it up to the resource at the passed in url.
   return function (url, query) {
-    var angularSails = new AngularSails($q, sailsSocket, url, query);
+    var angularSails = new AngularSails($q, sailsSocket, collectionUtils, url, query);
     return angularSails.construct();
   }
 
