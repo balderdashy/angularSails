@@ -3,6 +3,8 @@ angularSails
 
 AngularJS bindings for Sails.  http://angularjs.org
 
+[![Build Status](https://travis-ci.org/balderdashy/angularSails.png?branch=master)](https://travis-ci.org/balderdashy/angularSails)
+
 
 ## CURRENTLY IN ACTIVE DEVELOPMENT - NOT READY FOR PRODUCTION USE YET
 

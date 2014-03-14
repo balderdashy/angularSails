@@ -1,6 +1,7 @@
-(function() {
+(function(io) {
+  'use strict';
 
-  var angularSailsIO = angular.module('angularSails.io', [])
+  var angularSailsIO = angular.module('angularSails.io', []);
 
 
   /**
@@ -19,8 +20,7 @@
    */
 
    angularSailsIO.provider('sailsSocketFactory', function() {
-    var defaultPrefix = 'sails:',
-      ioSocket;
+    var defaultPrefix = 'sails:';
 
     // expose to provider
     this.$get = ['$q', '$rootScope', '$timeout', '$window',
@@ -40,14 +40,14 @@
         //simulates an Sails $http request over a socket.io connection.
         var sailsRequest = function(socket, method, url, data) {
 
-          var sailsDeferredRequest = $q.defer()
+          var sailsDeferredRequest = $q.defer();
 
           url = url.replace(/^(.+)\/*\s*$/, '$1');
           // If method is undefined, use 'get'
           method = method || 'get';
 
           if (typeof url !== 'string') {
-            sailsDeferredRequest.reject(new Error('Invalid or missing URL!\n' + usage));
+            sailsDeferredRequest.reject(new Error('Invalid or missing URL!\n'));
           }
 
           //sails accepts requests formatted as {url : '/api/foos', data: {id : 1}} over websockets
@@ -64,34 +64,40 @@
                 parsedResult = io.JSON.parse(result);
               } catch (e) {
                 if (typeof console !== 'undefined') {
-                  console.warn("Could not parse:", result, e);
+                  console.warn('Could not parse:', result, e);
                 }
-                return sailsDeferredRequest.reject("Server response could not be parsed!\n" + result);
+                return sailsDeferredRequest.reject('Server response could not be parsed!\n' + result);
               }
             }
 
 
-            if (parsedResult.status == 404) return sailsDeferredRequest.reject(new Error("404: Not found"));
-            if (parsedResult.status == 403) return sailsDeferredRequest.reject(new Error("403: Forbidden"));
-            if (parsedResult.status == 500) return sailsDeferredRequest.reject(new Error("500: Server Error"));
+            switch(parsedResult.status){
+              case 404:
+                return sailsDeferredRequest.reject(new Error('404: Not found'));
+              case 403:
+                return sailsDeferredRequest.reject(new Error('403: Forbidden'));
+              case 500:
+                return sailsDeferredRequest.reject(new Error('500: Server Error'));
+              default:
+                return sailsDeferredRequest.resolve(parsedResult);
+            }
 
-            else return sailsDeferredRequest.resolve(parsedResult)
           }));
           return sailsDeferredRequest.promise;
-        }
+        };
 
 
-        return function sailsSocket(options) {
+        return function (options) {
 
           options = options || {};
 
           //allow connection to remote APIs
-          var url = $window.location.origin || 'http://localhost:1337'
+          var url = $window.location.origin || 'http://localhost:1337';
 
           //check if options contains a token for JWT.
           if (options.token) {
-            var authString = "?token=" + options.token
-            url = url + authString
+            var authString = '?token=' + options.token;
+            url = url + authString;
           }
 
           //connect the socket.
@@ -125,7 +131,7 @@
 
             forward: function(events, scope) {
               if (events instanceof Array === false) {
-                events = [events]
+                events = [events];
               }
               if (!scope) {
                 scope = defaultScope;
@@ -134,11 +140,11 @@
                 var prefixedEvent = prefix + eventName;
 
                 var forwardBroadcast = asyncAngularify(socket, function(data) {
-                  scope.$broadcast(prefixedEvent, data)
+                  scope.$broadcast(prefixedEvent, data);
                 });
 
                 scope.$on('$destroy', function() {
-                  socket.removeListener(eventName, forwardBroadcast)
+                  socket.removeListener(eventName, forwardBroadcast);
                 });
 
                 socket.on(eventName, forwardBroadcast);
@@ -146,20 +152,20 @@
             },
             //sails REST API over socket.io with promises ftw
             get: function(path, query) {
-              return sailsRequest(socket, 'get', path, query)
+              return sailsRequest(socket, 'get', path, query);
             },
             post: function(path, data) {
-              return sailsRequest(socket, 'post', path, data)
+              return sailsRequest(socket, 'post', path, data);
             },
             put: function(path, data) {
-              return sailsRequest(socket, 'put', path, data)
+              return sailsRequest(socket, 'put', path, data);
             },
             delete: function(path, data) {
-              return sailsRequest(socket, 'delete', path, data)
+              return sailsRequest(socket, 'delete', path, data);
             }
           };
 
-          return sailsSocket
+          return sailsSocket;
         };
       }
     ];
@@ -187,9 +193,12 @@
           return deferred;
         };
         return $delegate;
-      })
+      });
     }
   ]);
 
 
-})();
+}(window.io || {
+  JSON: window.JSON,
+  connect: angular.noop
+}));
