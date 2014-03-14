@@ -4,13 +4,14 @@
  * description.
  */
 (function() {
+  'use strict';
 
 /**
  * The angular sailsBase module will provide firebase-like functionality
  * ------------------------------------------------------------------------
  *
  */
-var angularSailsBase = angular.module('angularSails.base', ['angularSails.io'])
+var angularSailsBase = angular.module('angularSails.base', ['angularSails.io']);
 
 /**
  * Angular sails socket service
@@ -30,12 +31,12 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
 
   // Angular sails constructor.
   // NOTE: note sure we need $q in here.
-  AngularSails = function ($q, sailsSocket, url, query) {
+  var AngularSails = function ($q, sailsSocket, url, query) {
     this.q = $q;
     this.sailsSocket = sailsSocket;
     this.url = url;
-    this.query = query
-  }
+    this.query = query;
+  };
 
   // Angular sails prototype.
   AngularSails.prototype = {
@@ -49,8 +50,8 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
      */
     construct: function () {
       var self = this,
-          object = {},
-          resourceCollection = [];
+          object = {};
+      //  resourceCollection = [];
 
 
       /**
@@ -115,7 +116,7 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
       object.$save = function (key) {
 
         if (angular.isUndefined(key)) {
-          self.sailsSocket.put(self.url, this)
+          self.sailsSocket.put(self.url, this);
         }
       };
 
@@ -219,7 +220,7 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
         self._updateModel(data.id, data, verb);
       });
     }
-  }
+  };
 
 
   // Our angular sails service returns a function that creates an angular sails
@@ -227,7 +228,7 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
   return function (url, query) {
     var angularSails = new AngularSails($q, sailsSocket, url, query);
     return angularSails.construct();
-  }
+  };
 
 }]);
 

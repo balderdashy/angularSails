@@ -7,7 +7,7 @@
     "Gabe Hernandez <ghernandez345@gmail.com>"
   ],
   "description": "SailsJS SDK for AngularJs",
-  "main": "angularSails.js",
+  "main": "dist/angularSails.min.js",
   "keywords": [
     "Angular",
     "AngularJS",

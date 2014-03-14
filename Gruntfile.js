@@ -3,43 +3,94 @@
  */
 module.exports = function(grunt) {
 
+  var getTime = function(){
+
+    return new Date().getTime();
+
+  };
+
+  require('load-grunt-tasks')(grunt);
+
   grunt.initConfig({
 
-    angularSails: {
-      base: 'src/angular-sails-base.js',
-      socket: 'src/angular-sails-socket.js',
-      example: 'example/assets/js/deps/angularSails.js',
-      dist: 'dist/angularSails.js'
+    app: {
+
+      src: 'src',
+      dist: 'dist',
+      tests: 'tests',
+      pkg: grunt.file.readJSON('bower.json')
+
     },
 
     concat: {
       dev: {
-        src: ['<%= angularSails.socket %>', '<%= angularSails.base %>'],
-        dest: '<%= angularSails.dist %>'
+        src: [
+          '<%= app.src %>/**/*.js'
+        ],
+        dest: '<%= app.dist %>/<% app.pkg.name %>.js'
       }
     },
 
-    copy: {
-      dev: {
-        src: '<%= angularSails.dist %>',
-        dest: '<%= angularSails.example %>'
+    uglify: {
+      options: {
+        sourceMap: true,
+        banner: '/*\n'
+              + '  <%= app.pkg.name %> <%= app.pkg.version %>-build' + getTime() + '\n'
+              + '  Built with <3 by Balderdashy'
+              + '*/'  //NOTE: Don't Judge me - Andrew
+      },
+      dist: {
+        files: {
+          '<%= app.dist %>/<%= app.pkg.name %>.min.js': ['<%= app.dist %>/<% app.pkg.name %>.js']
+        }
       }
+    },
+
+    jshint: {
+
+      options: {
+        reporter: require('jshint-stylish'),
+        jshintrc: true
+      },
+
+      all: [
+        '<%= app.src %>/**/*.js',
+        '<%= app.tests %>/**/*.spec.js'
+      ]
+
     },
 
     watch: {
-      files: ['<%= angularSails.base %>', '<%= angularSails.socket %>'],
-      tasks: ['concat', 'copy']
+      source: {
+        files: ['<%= app.src %>/**/*.js'],
+        tasks: ['newer:jshint'],
+        options: {
+          debounceDelay: 500,
+          atBegin: true
+        }
+      },
+      tests: {
+        files: ['<%= app.tests %>/**/*.spec.js'],
+        tasks: ['newer:jshint', 'karma:precompile'],
+        options: {
+          debounceDelay: 500,
+          atBegin: true
+        }
+      }
     }
+
   });
 
-  grunt.loadNpmTasks('grunt-contrib-concat');
-  grunt.loadNpmTasks('grunt-contrib-copy');
-  grunt.loadNpmTasks('grunt-contrib-watch');
-
-  grunt.registerTask('default', ['dev']);
+  grunt.registerTask('default', ['watch']);
 
   // Dev enviroment for copying over changes from src to example project.
-  grunt.registerTask('dev', ['copy', 'watch']);
+  grunt.registerTask('build', [
+    'jshint',
+    'karma:precompile',
+    'concat',
+    'uglify',
+    'karma:postcompile'
+  ]);
 
 
 }

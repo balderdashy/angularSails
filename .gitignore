@@ -1,7 +1,4 @@
-##### NODE ######
 node_modules
-
-##### BOWER ######
-bower_components
-
-
+vendor
+.idea
+npm-debug.log
