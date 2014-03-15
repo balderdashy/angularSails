@@ -499,7 +499,7 @@ angularSailsBase.factory('$sails',
 
         // If from a socket message,
         if (fromSocket) {
-          // TODO: find a better way of doing this. Should be using created at to search
+          // TODO: find a better way of doing this. Should not be using createdAt to search
           // for resource in collection. This should work better when we allow users to pass
           // in primary key attribute names.
           var oldModel = collectionUtils.findWhere(this._resource, {createdAt: data.createdAt});
