@@ -3,11 +3,7 @@
  */
 module.exports = function(grunt) {
 
-  var getTime = function(){
 
-    return new Date().getTime();
-
-  };
 
   require('load-grunt-tasks')(grunt);
 
@@ -18,11 +14,43 @@ module.exports = function(grunt) {
       src: 'src',
       dist: 'dist',
       tests: 'tests',
-      pkg: grunt.file.readJSON('bower.json')
+      organization: 'Balderdashy',
+      pkg: grunt.file.readJSON('bower.json'),
+
+      generateBanner: function(){
+
+        var getTime = function(){
+
+          return new Date().getTime();
+
+        };
+
+        var getCoreContributors = function(){
+          var authors = require('./bower.json').authors,
+              str = '  Core Contributors: \n',
+              i;
+
+
+          for(i = 0; i < authors.length; i++){
+            str += '   -' + authors[i] + '\n';
+          }
+
+          return str;
+        };
+
+        return '/*\n'
+              + '  <%= app.pkg.name %> <%= app.pkg.version %>-build' + getTime() + '\n'
+              + '  Built with <3 by <%= app.organization %>\n\n'  //NOTE: Don't Judge me - Andrew
+              + getCoreContributors()
+              + '*/';
+      }
 
     },
 
     concat: {
+      options: {
+        banner: '<%= app.generateBanner() %>'
+      },
       dev: {
         src: [
           '<%= app.src %>/**/*.js'
@@ -34,16 +62,17 @@ module.exports = function(grunt) {
     uglify: {
       options: {
         sourceMap: true,
-        banner: '/*\n'
-              + '  <%= app.pkg.name %> <%= app.pkg.version %>-build' + getTime() + '\n'
-              + '  Built with <3 by Balderdashy'
-              + '*/'  //NOTE: Don't Judge me - Andrew
+        banner: '<%= app.generateBanner() %>'
       },
       dist: {
         files: {
           '<%= app.dist %>/<%= app.pkg.name %>.min.js': ['<%= app.dist %>/<% app.pkg.name %>.js']
         }
       }
+    },
+
+    clean: {
+      dist: ['<%= app.dist %>']
     },
 
     jshint: {
@@ -96,6 +125,7 @@ module.exports = function(grunt) {
   grunt.registerTask('build', [
     'jshint',
     'karma:precompile',
+    'clean',
     'concat',
     'uglify',
     'karma:postcompile'

@@ -1,4 +1,12 @@
-/**
+/*
+  angularSails 0.0.0-build1394825224243
+  Built with <3 by Balderdashy
+
+  Core Contributors: 
+   -Rob Wormald <rob.wormald@innitapps.com>
+   -Gabe Hernandez <ghernandez345@gmail.com>
+   -Andrew Rhyne <rhyneandrew@gmail.com>
+*//**
  * The base angular sails module
  * ------------------------------------------------------------------------
  * description.

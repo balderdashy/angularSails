@@ -4,7 +4,8 @@
   "homepage": "https://github.com/balderdashy/angularSails",
   "authors": [
     "Rob Wormald <rob.wormald@innitapps.com>",
-    "Gabe Hernandez <ghernandez345@gmail.com>"
+    "Gabe Hernandez <ghernandez345@gmail.com>",
+    "Andrew Rhyne <rhyneandrew@gmail.com>"
   ],
   "description": "SailsJS SDK for AngularJs",
   "main": "dist/angularSails.min.js",

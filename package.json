@@ -29,7 +29,6 @@
   "bugs": {
     "url": "https://github.com/balderdashy/angularSails.git/issues"
   },
-
   "homepage": "https://github.com/balderdashy/angularSails.git",
   "devDependencies": {
     "grunt": "~0.4.2",
@@ -44,6 +43,7 @@
     "karma-phantomjs-launcher": "~0.1.2",
     "karma-firefox-launcher": "~0.1.3",
     "karma-jasmine": "~0.2.2",
-    "load-grunt-tasks": "~0.4.0"
+    "load-grunt-tasks": "~0.4.0",
+    "grunt-contrib-clean": "~0.5.0"
   }
 }
