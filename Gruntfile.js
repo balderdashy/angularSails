@@ -14,20 +14,21 @@ module.exports = function(grunt) {
   grunt.initConfig({
 
     app: {
-
       src: 'src',
       dist: 'dist',
       tests: 'tests',
+      example: 'example',
       pkg: grunt.file.readJSON('bower.json')
-
     },
 
     concat: {
       dev: {
         src: [
-          '<%= app.src %>/**/*.js'
+          '<%= app.src %>/utils/*.js',
+          '<%= app.src %>/angular-sails-io.js',
+          '<%= app.src %>/angular-sails-base.js',
         ],
-        dest: '<%= app.dist %>/<% app.pkg.name %>.js'
+        dest: '<%= app.dist %>/app.js'
       }
     },
 
@@ -37,7 +38,7 @@ module.exports = function(grunt) {
         banner: '/*\n'
               + '  <%= app.pkg.name %> <%= app.pkg.version %>-build' + getTime() + '\n'
               + '  Built with <3 by Balderdashy'
-              + '*/'  //NOTE: Don't Judge me - Andrew
+              + '*/'
       },
       dist: {
         files: {
@@ -57,7 +58,6 @@ module.exports = function(grunt) {
         '<%= app.src %>/**/*.js',
         '<%= app.tests %>/**/*.spec.js'
       ]
-
     },
 
     watch: {
@@ -90,9 +90,10 @@ module.exports = function(grunt) {
 
   });
 
-  grunt.registerTask('default', ['watch']);
 
-  // Dev enviroment for copying over changes from src to example project.
+  // Registered tasks.
+  grunt.registerTask('default', ['dev']);
+  grunt.registerTask('dev', ['watch']);
   grunt.registerTask('build', [
     'jshint',
     'karma:precompile',

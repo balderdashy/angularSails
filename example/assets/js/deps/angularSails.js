@@ -1,3 +1,110 @@
+var collection = angular.module('sailsBaseCollection', [])
+
+/**
+ * Utility methods for collections
+ * ------------------------------------------------------------------------
+ * These are a group of underscore methods that are very helpful when working
+ * with collection. Thank you so much, underscore. You are the best. I would have used
+ * you as a dependecy but didnt need all those other utilities.
+ *
+ * ******************************************************************
+ * Massive props to all those who helped contribute to the project.
+ * http://underscorejs.org/
+ * https://github.com/jashkenas/underscore
+ * ******************************************************************
+ */
+collection.factory('collectionUtils', function () {
+
+  var _ = {};
+
+  var ArrayProto = Array.prototype, ObjProto = Object.prototype, FuncProto = Function.prototype;
+
+  var breaker = {},
+      nativeForEach = ArrayProto.forEach,
+      nativeKeys = Object.keys,
+      nativeSome = ArrayProto.some;
+
+  _.matches = function(attrs) {
+    return function(obj) {
+      if (obj === attrs) return true;
+      for (var key in attrs) {
+        if (attrs[key] !== obj[key])
+          return false;
+      }
+      return true;
+    }
+  };
+
+  _.has = function(obj, key) {
+    return hasOwnProperty.call(obj, key);
+  };
+
+  _.isObject = function(obj) {
+    return obj === Object(obj);
+  };
+
+  _.keys = function(obj) {
+    if (!_.isObject(obj)) return [];
+    if (nativeKeys) return nativeKeys(obj);
+    var keys = [];
+    for (var key in obj) if (has(obj, key)) keys.push(key);
+    return keys;
+  };
+
+  _.each = function(obj, iterator, context) {
+    if (obj == null) return obj;
+    if (nativeForEach && obj.forEach === nativeForEach) {
+      obj.forEach(iterator, context);
+    } else if (obj.length === +obj.length) {
+      for (var i = 0, length = obj.length; i < length; i++) {
+        if (iterator.call(context, obj[i], i, obj) === breaker) return;
+      }
+    } else {
+      var keys = _.keys(obj);
+      for (var i = 0, length = keys.length; i < length; i++) {
+        if (iterator.call(context, obj[keys[i]], keys[i], obj) === breaker) return;
+      }
+    }
+    return obj;
+  };
+
+  _.identity = function(value) {
+    return value;
+  };
+
+  _.any = function(obj, predicate, context) {
+    predicate || (predicate = _.identity);
+    var result = false;
+    if (obj == null) return result;
+    if (nativeSome && obj.some === nativeSome) return obj.some(predicate, context);
+    _.each(obj, function(value, index, list) {
+      if (result || (result = predicate.call(context, value, index, list))) return breaker;
+    });
+    return !!result;
+  };
+
+  _.find = function(obj, predicate, context) {
+    var result;
+    _.any(obj, function(value, index, list) {
+      if (predicate.call(context, value, index, list)) {
+        result = value;
+        return true;
+      }
+    });
+    return result;
+  };
+
+  _.findWhere = function(obj, attrs) {
+    return _.find(obj, _.matches(attrs));
+  };
+
+  // -- public api --
+  return {
+    findWhere: _.findWhere
+  };
+
+});
+
 (function() {
 
   var angularSailsIO = angular.module('angularSails.io', [])
@@ -202,18 +309,51 @@
 (function() {
 
 /**
- * The angular sailsBase module will provide firebase-like functionality
+ * The angular sailsBase module.
  * ------------------------------------------------------------------------
  *
  */
-var angularSailsBase = angular.module('angularSails.base', ['angularSails.io'])
+var angularSailsBase = angular.module('angularSails.base',
+  ['angularSails.io', 'sailsBaseCollection'])
+
+// Define the `orderByPriority` filter that sorts objects returned by
+// $firebase in the order of priority. Priority is defined by Firebase,
+// for more info see: https://www.firebase.com/docs/ordered-data.html
+
+/**
+ * An angular filte that allows you map collection reourcesto arrays
+ * ------------------------------------------------------------------------
+ * Right now collections are represented by objects. Doing this allows us to place methods that
+ * you can call on the scope variable. A draw back though, is there is no guaranteed order to the
+ * items in this collection. Waterline will send back an ordered collection but this doesnt help us
+ * when the client ignores the ordering. This filter allows a way to create an array out of the
+ * models in the collection and thus, guarantees an order as well as the ability to manipulate and
+ * filter the array with other angular filters.
+ */
+angularSailsBase.filter("collectionToArray", function() {
+  return function(input) {
+    var collectionArray = [];
+
+    // Map object to array. Right now we check that the model key name is a number. If it is,
+    // we know that the key value pair represents a model in the collection.
+    // There is probably a better way to do this like adding cid prefix to value names.
+    // TODO: come back and think of a more elegant way to do this.
+    angular.forEach(input, function(val, key) {
+      if (!isNaN(key)) {
+        collectionArray.push(val);
+      }
+    });
+    return collectionArray;
+  };
+});
+
 
 /**
  * Angular sails socket service
  * ------------------------------------------------------------------------
  * Socket service that will be used by angular sails service,
  */
-angularSailsBase.factory('angularSailsSocket', ['sailsSocketFactory', function (sailsSocket) {
+angularSailsBase.factory('angularSailsSocket',['sailsSocketFactory', function (sailsSocket) {
   return sailsSocket();
 }]);
 
@@ -222,15 +362,21 @@ angularSailsBase.factory('angularSailsSocket', ['sailsSocketFactory', function (
  * ------------------------------------------------------------------------
  *
  */
-angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sailsSocket) {
+angularSailsBase.factory('$sails',
+  ['$q', 'angularSailsSocket', 'collectionUtils', function ($q, sailsSocket, collectionUtils) {
 
   // Angular sails constructor.
   // NOTE: note sure we need $q in here.
-  AngularSails = function ($q, sailsSocket, url, query) {
+  AngularSails = function ($q, sailsSocket, collectionUtils, url, query) {
     this.q = $q;
     this.sailsSocket = sailsSocket;
+    this.collectionUtils = collectionUtils
     this.url = url;
-    this.query = query
+    this.query = query;
+    this._resource = {};
+    this.collectionCounter = 0;
+    this._reourceId = this.url.slice(1)  // identifier of what resource we are using.
+    this.socketModelCid = undefined;
   }
 
   // Angular sails prototype.
@@ -244,103 +390,21 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
      *                   manipulate data at the specified url]
      */
     construct: function () {
-      var self = this,
-          object = {},
-          resourceCollection = [];
-
-
-      /**
-       * Add resource to collection
-       * TODO: support primative types and arrays?
-       *
-       * @param {Object} data [Data that will be added to resource collection]
-       */
-      object.$add = function (data) {
-        self.sailsSocket.post(self.url, data).then(function (res) {
-          self._updateModel(res.id, res, 'created');
-        });
-      };
-
-      /**
-       * Update resource in collection.
-       * TODO: Handle no key being passed. Im thinking this will update entire collection or
-       * the individual model its called on.
-       *
-       * @param  {Object|String|Number} key [Key representing model.]
-       */
-      object.$update = function (key) {
-        if (angular.isUndefined(key)) {
-
-        }
-
-        var model = self._getModel(key);
-        self.sailsSocket.put(self.url + '/' + model.id, model).then(function (res) {
-          self._updateModel(res.id, res, 'updated');
-        });
-      };
-
-      /**
-       * Remove resource or optionally remove all resources.
-       * TODO: handle no key being passed. Should this delete all records in this collection?
-       *
-       * @param  {Object|String|Number} key [Key representing model.]
-       */
-      object.$remove = function (key) {
-
-        if (angular.isUndefined(key)) {
-
-        }
-
-        var model = self._getModel(key);
-        if (model) {
-          self.sailsSocket.delete(self.url, model).then(function (res) {
-            self._updateModel(res.id, res, 'destroyed');
-          });
-        } else {
-          self.sailsSocket.delete(self.url);
-        }
-      };
-
-      /**
-       * Save resource
-       * @return {[type]} [description]
-       *
-       * TODO: Handle case where argument is passed in. I think each child is going to have
-       * to be an instance of an angular sails object. Come back and implement this method later.
-       */
-      object.$save = function (key) {
-
-        if (angular.isUndefined(key)) {
-          self.sailsSocket.put(self.url, this)
-        }
-      };
-
-      self._object = object;
-      self._getInitalData();
-
-      return object;
-    },
-
-    /**
-     * Gets the inital data from the server. With this inital data we populate an object that
-     * represents this angular sails collection.
-     *
-     * TODO: Think about also populating a seperate resource collection array, just so
-     * users have access to raw data response that's recieved.
-     */
-    _getInitalData: function () {
       var self = this;
-      var data = self.sailsSocket.get(self.url, self.query);
 
-      // Assign the values to the object.
+      // Get initial data and construct collection or model.
+      var data = self.sailsSocket.get(self.url, self.query);
       data.then(function (res) {
-        angular.forEach(res, function (model) {
-          self._updateModel(model.id, model, 'read');
-        });
-        self._setUpListeners();
+        if (angular.isArray(res)) {
+          self._constructCollection(res);
+        } else {
+          self._constructModel(res);
+        }
       });
 
+      return self._resource;
     },
+
 
     /**
      * Get the model out of the collection by its key
@@ -358,62 +422,265 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
       var modelId,
           model = {};
 
-      // Key is object.
+      // Key is object. handles models object and criteria objects being passed.
       if (angular.isObject(key)) {
-        modelId = key.id;
+        if (key.hasOwnProperty('cid')) {
+          modelId = key.cid;
+        }
+
+        // This need to change to use something like underscore's _.findWhere method. Right now it
+        // just assumes the user passed a criteria with key 'id'.
+        else {
+          modelId = key.id;
+        }
       }
+
+      // Key is string, and user knows the id of the model they want to use. Ignore cids
       else if (angular.isString(key)) {
         modelId = parseInt(key, 10);
       }
+
+      // Key is number, and user knows the id of the model they want to use. Ignore cids
       else if (angular.isNumber(key)) {
         modelId = key;
       }
+
+      // Not sure this is relevent anymore.
       else {
-        return model;
+        throw new Error('Must pass a model object, criteria object, string id, or number id');
       }
 
-      model = this._object[modelId];
+      // We only want to return attributes and not the entire model object.
+      model = this._resource[modelId];
       return model;
     },
 
     /**
-     * Update the model. Places model onto the object, making it accessable in the scope.
-     * TODO: More docs.
+     * Get the attributes of the model object. We are only concerned with key names that don't
+     * start with the '$' character.
+     * TODO: Handle case if someone puts an attribute name with $ as its first character.
+     *
+     * @param  {[type]} model [description]
+     *
+     * @return {[type]}       [description]
      */
+    _getAttributes: function (model) {
+      var attributes = {};
+      angular.forEach(model, function (val, key) {
+        if (key.charAt(0) !== '$' && key !== 'cid') {
+          attributes[key] = val;
+        }
+      });
+      return attributes;
+    },
+
     /**
      * Updates the current model. We create the new key/value pair onto the object or override the
      * current value if the key is already there. Depending on the verb recieved, we handle
      * the updating of the model differently. Right now the only verb that acts different is
      * 'destroyed'.
      *
-     * @param  {Number} key  [This key is the unique id of the model]
-     * @param  {Object} val  [An object that represents the model]
-     * @param  {String} verb [A verb used to determin how to update the model. Possible values
-     *                        are 'created', 'read', 'updated', and 'destoryed']
+     * @param  {Object} val         [An object that represents the model.]
+     * @param  {String} verb        [A verb used to determin how to update the model. Possible
+     *                               values are 'created', 'read', 'updated', and 'destoryed'.]
+     * @param  {Boolean} fromSocket  [Boolean so we know if update is from socket message.]
      */
-    _updateModel: function (key, val, verb) {
+    _updateModel: function (data, verb, fromSocket) {
+      var model;
+
+      // Create a new model on creates and reads
+      if (verb === 'read' || verb === 'created') {
+        data.$collection =  this._resource;
+        model = this._constructModel(data);
+      }
+
+      // Just pass down the model on updates and destroys.
+      else if (verb === 'updated' || verb === 'destroyed') {
+
+        // If from a socket message,
+        if (fromSocket) {
+          // TODO: find a better way of doing this. Should not be using createdAt to search
+          // for resource in collection. This should work better when we allow users to pass
+          // in primary key attribute names.
+          var oldModel = collectionUtils.findWhere(this._resource, {createdAt: data.createdAt});
+          model = angular.extend(oldModel, data);
+        } else {
+          model = data;
+        }
+      }
+
+
+      // eplace or add value at unique cid key for everything but destroys.
       if (verb !== 'destroyed') {
-        this._object[key] = val;
+        this._resource[model.cid] = model;
       } else {
-        delete this._object[key];
+        delete this._resource[model.cid];
       }
     },
 
     /**
-     * Hook up socket message listeners, will allow us to update local models when we recieve
-     * certain socket messages.
+     * Set up collection listeners. Collection listen for different things other then models.
+
      */
-    _setUpListeners: function () {
+    _setCollectionListeners: function () {
       var self = this,
           model = self.url.slice(1);
 
       self.sailsSocket.on(model, function (obj) {
 
         var verb = obj.verb,
-            data = obj.data || obj.previous;
+            data = obj.data || obj.previous,
+            fromSocket = true;
 
-        self._updateModel(data.id, data, verb);
+        self._updateModel(data, verb, fromSocket);
       });
+    },
+
+    _setModelListeners: function () {
+
+    },
+
+    /**
+     * Assigns a collection id to the model. This is so that we have a normalized unique identifier
+     * on each model in the collection
+     * @return {[type]} [description]
+     */
+    _assignCid: function (model) {
+      model.cid = ++this.collectionCounter;
+    },
+
+    /**
+     * constructs a collection.
+     * @param  {[type]} data [description]
+     * @return {[type]}      [description]
+     */
+    _constructCollection: function (data) {
+      var self = this,
+          object = {};
+
+      /**
+       * Add resource to collection
+       * TODO: support primative types and arrays? Not sure this will work well. Sails
+       * is more resource based.
+       *
+       * @param {Object} data [Data that will be added to resource collection]
+       */
+      object.$add = function (data) {
+        self.sailsSocket.post(self.url, data).then(function (res) {
+          self._updateModel(res, 'created');
+        });
+      };
+
+      /**
+       * Update resource in collection.
+       * TODO: Update multiple reources in collection at once.
+       *
+       * @param  {Object|String|Number} key [Key representing model.]
+       */
+      object.$update = function (key) {
+        var cid = key.cid,
+            model = self._getModel(key);
+            attrs = self._getAttributes(model);
+
+        self.sailsSocket.put(self.url + '/' + attrs.id, attrs).then(function (res) {
+          var updatedModel = angular.extend(res, model);
+          self.socketModelCid = model.cid;
+          self._updateModel(updatedModel, 'updated');
+        });
+      };
+
+      /**
+       * Persist all local changes in collection.
+       * @return {[type]} [description]
+       */
+      object.$save = function () {
+
+      },
+
+      /**
+       * Remove resource or optionally remove all resources.
+       * TODO: handle no key being passed. Should this delete all records in this collection?
+       *
+       * @param  {Object|String|Number} key [Key representing model.]
+       */
+      object.$remove = function (key) {
+        var cid = key.cid,
+            model = self._getModel(key),
+            attrs = self._getAttributes(model);
+
+        self.sailsSocket.delete(self.url, attrs).then(function (res) {
+          self.socketModelCid = model.cid;
+          self._updateModel(model, 'destroyed');
+        });
+      };
+
+      angular.extend(self._resource, object);
+
+      // Make a model for each item in the collection. We want to give each model a reference to
+      // its parent collection.
+      angular.forEach(data, function (model) {
+        self._updateModel(model, 'read');
+      });
+
+      self._setCollectionListeners();
+    },
+
+    /**
+     * construct a model. Each resource in a collection will be a model, and will allow users
+     * to call methods to update it.
+     * @param  {[type]} data [description]
+     * @return {[type]}      [description]
+     */
+    _constructModel: function (data) {
+      var self = this,
+          model = data;
+
+      /**
+       * Update resource in collection.
+       * TODO: Handle no key being passed. Im thinking this will update entire collection or
+       * the individual model its called on.
+       *
+       * @param  {Object|String|Number} key [Key representing model.]
+       */
+      model.$update = model.$save = function () {
+
+        if (hasCollection()) {
+          model.$collection.$update(model);
+        }
+
+        else {
+
+        }
+      };
+
+      /**
+       * Remove resource or optionally remove all resources.
+       * TODO: handle no key being passed. Should this delete all records in this collection?
+       *
+       * @param  {Object|String|Number} key [Key representing model.]
+       */
+      model.$remove = function () {
+
+        if (hasCollection()) {
+          model.$collection.$remove(model);
+        }
+
+        else {
+
+        }
+      };
+
+      // Simple method to see if model has a collection.
+      function hasCollection () {
+        return model.$collection;
+      }
+
+      // assign a cid to new models.
+      if (!model.cid) {
+        self._assignCid(model);
+      }
+
+      return model;
     }
   }
 
@@ -421,7 +688,7 @@ angularSailsBase.factory('$sails', ['$q', 'angularSailsSocket', function ($q, sa
   // Our angular sails service returns a function that creates an angular sails
   // instance and hooks it up to the resource at the passed in url.
   return function (url, query) {
-    var angularSails = new AngularSails($q, sailsSocket, url, query);
+    var angularSails = new AngularSails($q, sailsSocket, collectionUtils, url, query);
     return angularSails.construct();
   }
 

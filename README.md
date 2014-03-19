@@ -1,7 +1,7 @@
 angularSails
 ============
 
-AngularJS bindings for Sails.  http://angularjs.org
+AngularJS bindings for Sails. http://angularjs.org
 
 [![Build Status](https://travis-ci.org/balderdashy/angularSails.png?branch=master)](https://travis-ci.org/balderdashy/angularSails)
 
