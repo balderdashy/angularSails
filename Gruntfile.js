@@ -81,10 +81,10 @@ module.exports = function(grunt) {
 
     karma: {
       precompile: {
-        configFile: 'karma.precompile.conf.js'
+        configFile: 'karma.conf.js'
       },
       postcompile: {
-        configFile: 'karma.postcompile.conf.js'
+        configFile: 'karma.postcompile.conf.js',
       }
     }
 
@@ -93,7 +93,11 @@ module.exports = function(grunt) {
 
   // Registered tasks.
   grunt.registerTask('default', ['dev']);
+
   grunt.registerTask('dev', ['watch']);
+
+  grunt.registerTask('test', ['karma:precompile']);
+
   grunt.registerTask('build', [
     'jshint',
     'karma:precompile',
@@ -101,6 +105,4 @@ module.exports = function(grunt) {
     'uglify',
     'karma:postcompile'
   ]);
-
-
-}
+};
