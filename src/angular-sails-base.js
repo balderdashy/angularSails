@@ -19,7 +19,7 @@ var angularSailsBase = angular.module('angularSails.base',
 // for more info see: https://www.firebase.com/docs/ordered-data.html
 
 /**
- * An angular filte that allows you map collection reourcesto arrays
+ * An angular filter that allows you map collection reourcesto arrays
  * ------------------------------------------------------------------------
  * Right now collections are represented by objects. Doing this allows us to place methods that
  * you can call on the scope variable. A draw back though, is there is no guaranteed order to the
