@@ -12,7 +12,7 @@
 
     beforeEach(module('angularSails.base'));
 
-    describe('$sails service api', function () {
+    describe('$sailsRef service api', function () {
 
       // Mock socket service.
       beforeEach(module(function ($provide) {
@@ -41,11 +41,11 @@
         }]);
       }));
 
-      var $sails, $rootScope, collection;
-      beforeEach(inject(function (_$sails_, _$rootScope_) {
-        $sails = _$sails_;
+      var $sailsRef, $rootScope, collection;
+      beforeEach(inject(function (_$sailsRef_, _$rootScope_) {
+        $sailsRef = _$sailsRef_;
         $rootScope = _$rootScope_;
-        collection = $sails('/comment');
+        collection = $sailsRef('/comment');
         $rootScope.$apply();
       }));
 
@@ -75,7 +75,7 @@
       });
 
       it('should update the model in the collection when using $update', function () {
-        var collection = $sails('/comment');
+        var collection = $sailsRef('/comment');
         $rootScope.$apply();
         var modelToUpdate = collection['1'];
         modelToUpdate.name = 'Greg';

@@ -59,7 +59,7 @@ angularSailsBase.factory('angularSailsSocket',
  * ------------------------------------------------------------------------
  *
  */
-angularSailsBase.factory('$sails',
+angularSailsBase.factory('$sailsRef',
   ['angularSailsSocket', 'collectionUtils', function (angularSailsSocket, collectionUtils) {
 
   // Angular sails constructor.
