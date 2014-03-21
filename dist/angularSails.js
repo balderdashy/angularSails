@@ -287,33 +287,6 @@ collection.factory('collectionUtils', function () {
     ];
   });
 
-  //decorate $q so we can use success/error
-  angularSailsIO.config(['$provide',
-    function ($provide) {
-      $provide.decorator('$q', function($delegate) {
-        var defer = $delegate.defer;
-        $delegate.defer = function() {
-          var deferred = defer();
-          deferred.promise.success = function(fn) {
-            deferred.promise.then(function(value) {
-              fn(value);
-            });
-            return deferred.promise;
-          };
-          deferred.promise.error = function(fn) {
-            deferred.promise.then(null, function(value) {
-              fn(value);
-            });
-            return deferred.promise;
-          };
-          return deferred;
-        };
-        return $delegate;
-      });
-    }
-  ]);
-
-
 }(window.io || {
   JSON: window.JSON,
   connect: angular.noop
@@ -371,8 +344,8 @@ angularSailsBase.filter('collectionToArray', function() {
  * Socket service that will be used by angular sails service,
  */
 angularSailsBase.factory('angularSailsSocket',
-  ['sailsSocketFactory', '$q', function (sailsSocketFactory, $q) {
-  return sailsSocketFactory($q);
+  ['sailsSocketFactory', function (sailsSocketFactory) {
+  return sailsSocketFactory();
 }]);
 
 /**
