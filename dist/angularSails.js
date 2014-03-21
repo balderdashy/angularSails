@@ -1,4 +1,8 @@
-var collection = angular.module('sailsBaseCollection', [])
+(function() {
+
+'use strict';
+
+var collection = angular.module('sailsBaseCollection', []);
 
 /**
  * Utility methods for collections
@@ -17,7 +21,7 @@ collection.factory('collectionUtils', function () {
 
   var _ = {};
 
-  var ArrayProto = Array.prototype, ObjProto = Object.prototype, FuncProto = Function.prototype;
+  var ArrayProto = Array.prototype;
 
   var breaker = {},
       nativeForEach = ArrayProto.forEach,
@@ -32,7 +36,7 @@ collection.factory('collectionUtils', function () {
           return false;
       }
       return true;
-    }
+    };
   };
 
   _.has = function(obj, key) {
@@ -47,7 +51,7 @@ collection.factory('collectionUtils', function () {
     if (!_.isObject(obj)) return [];
     if (nativeKeys) return nativeKeys(obj);
     var keys = [];
-    for (var key in obj) if (has(obj, key)) keys.push(key);
+    for (var key in obj) if (_.has(obj, key)) keys.push(key);
     return keys;
   };
 
@@ -56,13 +60,13 @@ collection.factory('collectionUtils', function () {
     if (nativeForEach && obj.forEach === nativeForEach) {
       obj.forEach(iterator, context);
     } else if (obj.length === +obj.length) {
-      for (var i = 0, length = obj.length; i < length; i++) {
+      for (var i = 0, length1 = obj.length; i < length1; i++) {
         if (iterator.call(context, obj[i], i, obj) === breaker) return;
       }
     } else {
       var keys = _.keys(obj);
-      for (var i = 0, length = keys.length; i < length; i++) {
-        if (iterator.call(context, obj[keys[i]], keys[i], obj) === breaker) return;
+      for (var j = 0, length2 = keys.length; j < length2; j++) {
+        if (iterator.call(context, obj[keys[j]], keys[j], obj) === breaker) return;
       }
     }
     return obj;
@@ -73,7 +77,10 @@ collection.factory('collectionUtils', function () {
   };
 
   _.any = function(obj, predicate, context) {
-    predicate || (predicate = _.identity);
+    if (!predicate) {
+      predicate = _.identity;
+    }
+
     var result = false;
     if (obj == null) return result;
     if (nativeSome && obj.some === nativeSome) return obj.some(predicate, context);
@@ -105,9 +112,12 @@ collection.factory('collectionUtils', function () {
 
 });
 
-(function() {
+})();
 
-  var angularSailsIO = angular.module('angularSails.io', [])
+(function(io) {
+  'use strict';
+
+  var angularSailsIO = angular.module('angularSails.io', []);
 
 
   /**
@@ -126,12 +136,11 @@ collection.factory('collectionUtils', function () {
    */
 
    angularSailsIO.provider('sailsSocketFactory', function() {
-    var defaultPrefix = 'sails:',
-      ioSocket;
+    var defaultPrefix = 'sails:';
 
     // expose to provider
     this.$get = ['$q', '$rootScope', '$timeout', '$window',
-      function($q, $rootScope, $timeout, $window) {
+      function ($q, $rootScope, $timeout, $window) {
 
         //plugs a socket emit into the ngDigest cycle.
         var asyncAngularify = function(socket, callback) {
@@ -147,14 +156,14 @@ collection.factory('collectionUtils', function () {
         //simulates an Sails $http request over a socket.io connection.
         var sailsRequest = function(socket, method, url, data) {
 
-          var sailsDeferredRequest = $q.defer()
+          var sailsDeferredRequest = $q.defer();
 
           url = url.replace(/^(.+)\/*\s*$/, '$1');
           // If method is undefined, use 'get'
           method = method || 'get';
 
           if (typeof url !== 'string') {
-            sailsDeferredRequest.reject(new Error('Invalid or missing URL!\n' + usage));
+            sailsDeferredRequest.reject(new Error('Invalid or missing URL!\n'));
           }
 
           //sails accepts requests formatted as {url : '/api/foos', data: {id : 1}} over websockets
@@ -171,34 +180,40 @@ collection.factory('collectionUtils', function () {
                 parsedResult = io.JSON.parse(result);
               } catch (e) {
                 if (typeof console !== 'undefined') {
-                  console.warn("Could not parse:", result, e);
+                  console.warn('Could not parse:', result, e);
                 }
-                return sailsDeferredRequest.reject("Server response could not be parsed!\n" + result);
+                return sailsDeferredRequest.reject('Server response could not be parsed!\n' + result);
               }
             }
 
 
-            if (parsedResult.status == 404) return sailsDeferredRequest.reject(new Error("404: Not found"));
-            if (parsedResult.status == 403) return sailsDeferredRequest.reject(new Error("403: Forbidden"));
-            if (parsedResult.status == 500) return sailsDeferredRequest.reject(new Error("500: Server Error"));
+            switch(parsedResult.status){
+              case 404:
+                return sailsDeferredRequest.reject(new Error('404: Not found'));
+              case 403:
+                return sailsDeferredRequest.reject(new Error('403: Forbidden'));
+              case 500:
+                return sailsDeferredRequest.reject(new Error('500: Server Error'));
+              default:
+                return sailsDeferredRequest.resolve(parsedResult);
+            }
 
-            else return sailsDeferredRequest.resolve(parsedResult)
           }));
           return sailsDeferredRequest.promise;
-        }
+        };
 
 
-        return function sailsSocket(options) {
+        return function (options) {
 
           options = options || {};
 
           //allow connection to remote APIs
-          var url = $window.location.origin || 'http://localhost:1337'
+          var url = $window.location.origin || 'http://localhost:1337';
 
           //check if options contains a token for JWT.
           if (options.token) {
-            var authString = "?token=" + options.token
-            url = url + authString
+            var authString = '?token=' + options.token;
+            url = url + authString;
           }
 
           //connect the socket.
@@ -232,7 +247,7 @@ collection.factory('collectionUtils', function () {
 
             forward: function(events, scope) {
               if (events instanceof Array === false) {
-                events = [events]
+                events = [events];
               }
               if (!scope) {
                 scope = defaultScope;
@@ -241,11 +256,11 @@ collection.factory('collectionUtils', function () {
                 var prefixedEvent = prefix + eventName;
 
                 var forwardBroadcast = asyncAngularify(socket, function(data) {
-                  scope.$broadcast(prefixedEvent, data)
+                  scope.$broadcast(prefixedEvent, data);
                 });
 
                 scope.$on('$destroy', function() {
-                  socket.removeListener(eventName, forwardBroadcast)
+                  socket.removeListener(eventName, forwardBroadcast);
                 });
 
                 socket.on(eventName, forwardBroadcast);
@@ -253,20 +268,20 @@ collection.factory('collectionUtils', function () {
             },
             //sails REST API over socket.io with promises ftw
             get: function(path, query) {
-              return sailsRequest(socket, 'get', path, query)
+              return sailsRequest(socket, 'get', path, query);
             },
             post: function(path, data) {
-              return sailsRequest(socket, 'post', path, data)
+              return sailsRequest(socket, 'post', path, data);
             },
             put: function(path, data) {
-              return sailsRequest(socket, 'put', path, data)
+              return sailsRequest(socket, 'put', path, data);
             },
             delete: function(path, data) {
-              return sailsRequest(socket, 'delete', path, data)
+              return sailsRequest(socket, 'delete', path, data);
             }
           };
 
-          return sailsSocket
+          return sailsSocket;
         };
       }
     ];
@@ -274,7 +289,7 @@ collection.factory('collectionUtils', function () {
 
   //decorate $q so we can use success/error
   angularSailsIO.config(['$provide',
-    function($provide) {
+    function ($provide) {
       $provide.decorator('$q', function($delegate) {
         var defer = $delegate.defer;
         $delegate.defer = function() {
@@ -294,12 +309,15 @@ collection.factory('collectionUtils', function () {
           return deferred;
         };
         return $delegate;
-      })
+      });
     }
   ]);
 
 
-})();
+}(window.io || {
+  JSON: window.JSON,
+  connect: angular.noop
+}));
 
 /**
  * The base angular sails module
@@ -307,21 +325,21 @@ collection.factory('collectionUtils', function () {
  * description.
  */
 (function() {
+  'use strict';
 
 /**
  * The angular sailsBase module.
  * ------------------------------------------------------------------------
  *
  */
-var angularSailsBase = angular.module('angularSails.base',
-  ['angularSails.io', 'sailsBaseCollection'])
+var angularSailsBase = angular.module('angularSails.base', ['angularSails.io', 'sailsBaseCollection']);
 
 // Define the `orderByPriority` filter that sorts objects returned by
 // $firebase in the order of priority. Priority is defined by Firebase,
 // for more info see: https://www.firebase.com/docs/ordered-data.html
 
 /**
- * An angular filte that allows you map collection reourcesto arrays
+ * An angular filter that allows you map collection reourcesto arrays
  * ------------------------------------------------------------------------
  * Right now collections are represented by objects. Doing this allows us to place methods that
  * you can call on the scope variable. A draw back though, is there is no guaranteed order to the
@@ -330,7 +348,7 @@ var angularSailsBase = angular.module('angularSails.base',
  * models in the collection and thus, guarantees an order as well as the ability to manipulate and
  * filter the array with other angular filters.
  */
-angularSailsBase.filter("collectionToArray", function() {
+angularSailsBase.filter('collectionToArray', function() {
   return function(input) {
     var collectionArray = [];
 
@@ -347,14 +365,14 @@ angularSailsBase.filter("collectionToArray", function() {
   };
 });
 
-
 /**
  * Angular sails socket service
  * ------------------------------------------------------------------------
  * Socket service that will be used by angular sails service,
  */
-angularSailsBase.factory('angularSailsSocket',['sailsSocketFactory', function (sailsSocket) {
-  return sailsSocket();
+angularSailsBase.factory('angularSailsSocket',
+  ['sailsSocketFactory', '$q', function (sailsSocketFactory, $q) {
+  return sailsSocketFactory($q);
 }]);
 
 /**
@@ -363,21 +381,19 @@ angularSailsBase.factory('angularSailsSocket',['sailsSocketFactory', function (s
  *
  */
 angularSailsBase.factory('$sails',
-  ['$q', 'angularSailsSocket', 'collectionUtils', function ($q, sailsSocket, collectionUtils) {
+  ['angularSailsSocket', 'collectionUtils', function (angularSailsSocket, collectionUtils) {
 
   // Angular sails constructor.
-  // NOTE: note sure we need $q in here.
-  AngularSails = function ($q, sailsSocket, collectionUtils, url, query) {
-    this.q = $q;
-    this.sailsSocket = sailsSocket;
-    this.collectionUtils = collectionUtils
+  var AngularSails = function (angularSailsSocket, collectionUtils, url, query) {
+    this.angularSailsSocket = angularSailsSocket;
+    this.collectionUtils = collectionUtils;
     this.url = url;
     this.query = query;
     this._resource = {};
     this.collectionCounter = 0;
-    this._reourceId = this.url.slice(1)  // identifier of what resource we are using.
+    this._reourceId = this.url.slice(1);  // identifier of what resource we are using.
     this.socketModelCid = undefined;
-  }
+  };
 
   // Angular sails prototype.
   AngularSails.prototype = {
@@ -393,7 +409,7 @@ angularSailsBase.factory('$sails',
       var self = this;
 
       // Get initial data and construct collection or model.
-      var data = self.sailsSocket.get(self.url, self.query);
+      var data = self.angularSailsSocket.get(self.url, self.query);
       data.then(function (res) {
         if (angular.isArray(res)) {
           self._constructCollection(res);
@@ -526,7 +542,7 @@ angularSailsBase.factory('$sails',
       var self = this,
           model = self.url.slice(1);
 
-      self.sailsSocket.on(model, function (obj) {
+      self.angularSailsSocket.on(model, function (obj) {
 
         var verb = obj.verb,
             data = obj.data || obj.previous,
@@ -566,7 +582,7 @@ angularSailsBase.factory('$sails',
        * @param {Object} data [Data that will be added to resource collection]
        */
       object.$add = function (data) {
-        self.sailsSocket.post(self.url, data).then(function (res) {
+        self.angularSailsSocket.post(self.url, data).then(function (res) {
           self._updateModel(res, 'created');
         });
       };
@@ -578,11 +594,10 @@ angularSailsBase.factory('$sails',
        * @param  {Object|String|Number} key [Key representing model.]
        */
       object.$update = function (key) {
-        var cid = key.cid,
-            model = self._getModel(key);
+        var model = self._getModel(key),
             attrs = self._getAttributes(model);
 
-        self.sailsSocket.put(self.url + '/' + attrs.id, attrs).then(function (res) {
+        self.angularSailsSocket.put(self.url + '/' + attrs.id, attrs).then(function (res) {
           var updatedModel = angular.extend(res, model);
           self.socketModelCid = model.cid;
           self._updateModel(updatedModel, 'updated');
@@ -595,7 +610,7 @@ angularSailsBase.factory('$sails',
        */
       object.$save = function () {
 
-      },
+      };
 
       /**
        * Remove resource or optionally remove all resources.
@@ -604,11 +619,10 @@ angularSailsBase.factory('$sails',
        * @param  {Object|String|Number} key [Key representing model.]
        */
       object.$remove = function (key) {
-        var cid = key.cid,
-            model = self._getModel(key),
+        var model = self._getModel(key),
             attrs = self._getAttributes(model);
 
-        self.sailsSocket.delete(self.url, attrs).then(function (res) {
+        self.angularSailsSocket.delete(self.url, attrs).then(function () {
           self.socketModelCid = model.cid;
           self._updateModel(model, 'destroyed');
         });
@@ -682,15 +696,15 @@ angularSailsBase.factory('$sails',
 
       return model;
     }
-  }
+  };
 
 
   // Our angular sails service returns a function that creates an angular sails
   // instance and hooks it up to the resource at the passed in url.
   return function (url, query) {
-    var angularSails = new AngularSails($q, sailsSocket, collectionUtils, url, query);
+    var angularSails = new AngularSails(angularSailsSocket, collectionUtils, url, query);
     return angularSails.construct();
-  }
+  };
 
 }]);
 

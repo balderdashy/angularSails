@@ -16,7 +16,7 @@
 
       // Mock socket service.
       beforeEach(module(function ($provide) {
-        $provide.factory('angularSailsSocket', function ($q) {
+        $provide.factory('angularSailsSocket', ['$q', function ($q) {
           var collectionData = [{id:1}, {id: 2}, {id: 3}];
           var deferred = $q.defer();
           return {
@@ -38,7 +38,7 @@
             },
             on: function () {}
           };
-        });
+        }]);
       }));
 
       var $sails, $rootScope, collection;

@@ -11,8 +11,7 @@
  * ------------------------------------------------------------------------
  *
  */
-var angularSailsBase = angular.module('angularSails.base',
-  ['angularSails.io', 'sailsBaseCollection']);
+var angularSailsBase = angular.module('angularSails.base', ['angularSails.io', 'sailsBaseCollection']);
 
 // Define the `orderByPriority` filter that sorts objects returned by
 // $firebase in the order of priority. Priority is defined by Firebase,
@@ -50,8 +49,9 @@ angularSailsBase.filter('collectionToArray', function() {
  * ------------------------------------------------------------------------
  * Socket service that will be used by angular sails service,
  */
-angularSailsBase.factory('angularSailsSocket',['sailsSocketFactory', function (sailsSocket) {
-  return sailsSocket();
+angularSailsBase.factory('angularSailsSocket',
+  ['sailsSocketFactory', function (sailsSocketFactory) {
+  return sailsSocketFactory();
 }]);
 
 /**
@@ -60,13 +60,11 @@ angularSailsBase.factory('angularSailsSocket',['sailsSocketFactory', function (s
  *
  */
 angularSailsBase.factory('$sails',
-  ['$q', 'angularSailsSocket', 'collectionUtils', function ($q, sailsSocket, collectionUtils) {
+  ['angularSailsSocket', 'collectionUtils', function (angularSailsSocket, collectionUtils) {
 
   // Angular sails constructor.
-  // NOTE: note sure we need $q in here.
-  var AngularSails = function ($q, sailsSocket, collectionUtils, url, query) {
-    this.q = $q;
-    this.sailsSocket = sailsSocket;
+  var AngularSails = function (angularSailsSocket, collectionUtils, url, query) {
+    this.angularSailsSocket = angularSailsSocket;
     this.collectionUtils = collectionUtils;
     this.url = url;
     this.query = query;
@@ -90,7 +88,7 @@ angularSailsBase.factory('$sails',
       var self = this;
 
       // Get initial data and construct collection or model.
-      var data = self.sailsSocket.get(self.url, self.query);
+      var data = self.angularSailsSocket.get(self.url, self.query);
       data.then(function (res) {
         if (angular.isArray(res)) {
           self._constructCollection(res);
@@ -223,7 +221,7 @@ angularSailsBase.factory('$sails',
       var self = this,
           model = self.url.slice(1);
 
-      self.sailsSocket.on(model, function (obj) {
+      self.angularSailsSocket.on(model, function (obj) {
 
         var verb = obj.verb,
             data = obj.data || obj.previous,
@@ -263,7 +261,7 @@ angularSailsBase.factory('$sails',
        * @param {Object} data [Data that will be added to resource collection]
        */
       object.$add = function (data) {
-        self.sailsSocket.post(self.url, data).then(function (res) {
+        self.angularSailsSocket.post(self.url, data).then(function (res) {
           self._updateModel(res, 'created');
         });
       };
@@ -278,7 +276,7 @@ angularSailsBase.factory('$sails',
         var model = self._getModel(key),
             attrs = self._getAttributes(model);
 
-        self.sailsSocket.put(self.url + '/' + attrs.id, attrs).then(function (res) {
+        self.angularSailsSocket.put(self.url + '/' + attrs.id, attrs).then(function (res) {
           var updatedModel = angular.extend(res, model);
           self.socketModelCid = model.cid;
           self._updateModel(updatedModel, 'updated');
@@ -303,7 +301,7 @@ angularSailsBase.factory('$sails',
         var model = self._getModel(key),
             attrs = self._getAttributes(model);
 
-        self.sailsSocket.delete(self.url, attrs).then(function () {
+        self.angularSailsSocket.delete(self.url, attrs).then(function () {
           self.socketModelCid = model.cid;
           self._updateModel(model, 'destroyed');
         });
@@ -383,7 +381,7 @@ angularSailsBase.factory('$sails',
   // Our angular sails service returns a function that creates an angular sails
   // instance and hooks it up to the resource at the passed in url.
   return function (url, query) {
-    var angularSails = new AngularSails($q, sailsSocket, collectionUtils, url, query);
+    var angularSails = new AngularSails(angularSailsSocket, collectionUtils, url, query);
     return angularSails.construct();
   };
 

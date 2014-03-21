@@ -1,3 +1,5 @@
+(function() {
+
 'use strict';
 
 var collection = angular.module('sailsBaseCollection', []);
@@ -109,3 +111,5 @@ collection.factory('collectionUtils', function () {
   };
 
 });
+
+})();

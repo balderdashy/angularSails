@@ -24,7 +24,7 @@
 
     // expose to provider
     this.$get = ['$q', '$rootScope', '$timeout', '$window',
-      function($q, $rootScope, $timeout, $window) {
+      function ($q, $rootScope, $timeout, $window) {
 
         //plugs a socket emit into the ngDigest cycle.
         var asyncAngularify = function(socket, callback) {
@@ -173,7 +173,7 @@
 
   //decorate $q so we can use success/error
   angularSailsIO.config(['$provide',
-    function($provide) {
+    function ($provide) {
       $provide.decorator('$q', function($delegate) {
         var defer = $delegate.defer;
         $delegate.defer = function() {

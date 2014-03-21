@@ -26,9 +26,9 @@ module.exports = function(grunt) {
         src: [
           '<%= app.src %>/utils/*.js',
           '<%= app.src %>/angular-sails-io.js',
-          '<%= app.src %>/angular-sails-base.js',
+          '<%= app.src %>/angular-sails-base.js'
         ],
-        dest: '<%= app.dist %>/app.js'
+        dest: '<%= app.dist %>/<%= app.pkg.name %>.js'
       }
     },
 
@@ -42,7 +42,7 @@ module.exports = function(grunt) {
       },
       dist: {
         files: {
-          '<%= app.dist %>/<%= app.pkg.name %>.min.js': ['<%= app.dist %>/<% app.pkg.name %>.js']
+          '<%= app.dist %>/<%= app.pkg.name %>.min.js': ['<%= app.dist %>/<%= app.pkg.name %>.js']
         }
       }
     },
