@@ -17,7 +17,7 @@ module.exports = function(grunt) {
       src: 'src',
       dist: 'dist',
       tests: 'tests',
-      example: 'example',
+      example: 'example/assets/',
       pkg: grunt.file.readJSON('bower.json')
     },
 
@@ -29,6 +29,13 @@ module.exports = function(grunt) {
           '<%= app.src %>/angular-sails-base.js'
         ],
         dest: '<%= app.dist %>/<%= app.pkg.name %>.js'
+      }
+    },
+
+    copy: {
+      example: {
+        src: '<%= app.dist %>/angularSails.js',
+        dest: '<%= app.example %>/js/deps/angularSails.js',
       }
     },
 
@@ -103,6 +110,7 @@ module.exports = function(grunt) {
     'karma:precompile',
     'concat',
     'uglify',
+    'copy',
     'karma:postcompile'
   ]);
 };

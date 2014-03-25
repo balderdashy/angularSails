@@ -2,13 +2,14 @@
 
   var app = angular.module('AngularSailsApp', ['angularSails.base']);
 
-  app.controller('CommentCtrl', ['$scope', '$sails', function ($scope, $sails) {
+  app.controller('CommentsCtrl', ['$scope', '$sailsRef', function ($scope, $sailsRef) {
 
     // Get the comments from the sails server.
-    $scope.comments = $sails('/comment');
+    $scope.comments = $sailsRef('/comment');
 
-    // You can also add a second query paramater to get resources at endpoint that fulfull
-    // the criteria.
+    // You can also add a second argument that is a query paramater to
+    // get resources at endpoint that fulfulls the criteria.
+    //
     // $scope.comments = $sails('/comment', {body: 'test'});
 
     // Adds a comment.
@@ -33,6 +34,13 @@
       // Now you can also update a comment like this:
       comment.$update();
     };
+
+  }]);
+
+  app.controller('UserCtrl', ['$scope', '$sailsRef', function ($scope, $sailsRef) {
+
+    // Get individual user resource;
+    $scope.user = $sailsRef('/user/5');
 
   }]);
 

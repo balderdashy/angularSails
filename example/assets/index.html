@@ -22,22 +22,35 @@
     </style>
   </head>
 
-  <body ng-controller="CommentCtrl">
+  <body>
+    <h1>Sails Reference Service Example</h1>
 
-    <h1>Comments:</h1>
-    <ul ng-cloak>
-      <li ng-repeat="comment in comments | collectionToArray">
-        comment: {{comment.body}} cid: {{comment.cid}}
-        <a href="" ng-click="deleteComment(comment)">x</a>
-        <a href="" ng-click="editing = !editing">edit</a>
-        <input ng-show="editing" ng-model="comment.body"/>
-        <button ng-show="editing"ng-click="updateComment(comment); editing = !editing">update</button>
-      </li>
-    </ul>
+    <h2>Comments Collection:</h2>
+    <div ng-controller="CommentsCtrl" class="comments">
+      <ul ng-cloak>
+        <li ng-repeat="comment in comments | collectionToArray">
+          comment: {{comment.body}} cid: {{comment.cid}}
+          <a href="" ng-click="deleteComment(comment)">x</a>
+          <a href="" ng-click="editing = !editing">edit</a>
+          <input ng-show="editing" ng-model="comment.body"/>
+          <button ng-show="editing"ng-click="updateComment(comment); editing = !editing">update</button>
+        </li>
+      </ul>
+      <textarea ng-keyup="addComment($event)" ng-model="newComment" placeholder="Enter your comment..."
+      autofocus></textarea>
+      <p>Press enter to submit comment</p>
+    </div>
 
-    <textarea ng-keyup="addComment($event)" ng-model="newComment" placeholder="Enter your comment..."
-    autofocus></textarea>
-    <p>Press enter to submit comment</p>
+
+
+    <h2>Individual User</h2>
+    <div ng-controller="UserCtrl" ng-cloak>
+      <h3>Name:</h3>
+      <span>{{ user.name }}</span>
+      <h3>Age:</h3>
+      <span>{{ user.age }}</span>
+    </div>
+
 
     <!-- dependencies -->
     <script src="js/deps/socket.io.js"></script>

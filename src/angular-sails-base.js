@@ -368,12 +368,17 @@ angularSailsBase.factory('$sailsRef',
         return model.$collection;
       }
 
-      // assign a cid to new models.
-      if (!model.cid) {
-        self._assignCid(model);
+      if (!hasCollection()) {
+        angular.extend(self._resource, model);
+      } else {
+        // assign a cid to new models.
+        if (!model.cid) {
+          self._assignCid(model);
+        }
+        return model;
       }
 
-      return model;
+
     }
   };
 
