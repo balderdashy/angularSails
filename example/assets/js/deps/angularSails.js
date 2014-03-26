@@ -636,7 +636,10 @@ angularSailsBase.factory('$sailsRef',
         }
 
         else {
+          var attrs = self._getAttributes(model);
+          self.angularSailsSocket.put(self.url, attrs).then(function () {
 
+          });
         }
       };
 
@@ -653,7 +656,10 @@ angularSailsBase.factory('$sailsRef',
         }
 
         else {
+          var attrs = self._getAttributes(model);
+          self.angularSailsSocket.delete(self.url, attrs).then(function () {
 
+          });
         }
       };
 

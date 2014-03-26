@@ -1,0 +1,29 @@
+[ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
+  display: none !important;
+}
+
+ul {
+  list-style: none;
+}
+
+textarea {
+  width: 300px;
+  height: 150px;
+  resize: none;
+}
+
+.comment {
+  margin: 8px 0;
+}
+
+.comment-body {
+  margin: 5px 15px;
+}
+
+.delete-comment {
+  cursor: pointer;
+}
+
+.delete-comment:hover {
+  cursor: pointer;
+}
