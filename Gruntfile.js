@@ -21,10 +21,21 @@ module.exports = function(grunt) {
       pkg: grunt.file.readJSON('bower.json')
     },
 
+
+  copy: {
+      dev: {
+
+          src: [ '<%= app.src %>/**/*.js' ],
+          dest: '<%= app.example %>/assets/js/deps',
+          expand: true,
+          flatten : true
+      }
+  },
+
     concat: {
       dev: {
         src: [
-          '<%= app.src %>/utils/*.js',
+          '<%= app.src %>/sails-utils/*.js',
           '<%= app.src %>/angular-sails-io.js',
           '<%= app.src %>/angular-sails-base.js'
         ],
@@ -70,7 +81,7 @@ module.exports = function(grunt) {
     watch: {
       source: {
         files: ['<%= app.src %>/**/*.js'],
-        tasks: ['newer:jshint'],
+        tasks: ['copy:dev'],
         options: {
           debounceDelay: 500,
           atBegin: true
@@ -97,6 +108,8 @@ module.exports = function(grunt) {
 
   });
 
+
+    grunt.loadNpmTasks('grunt-contrib-copy');
 
   // Registered tasks.
   grunt.registerTask('default', ['dev']);

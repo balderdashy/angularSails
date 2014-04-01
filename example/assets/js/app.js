@@ -1,57 +1,60 @@
 (function () {
 
-  var app = angular.module('AngularSailsApp', ['angularSails.base']);
+    var app = angular.module('AngularSailsApp', ['angularSails.io']);
 
-  app.controller('CommentsCtrl', ['$scope', '$sailsRef', function ($scope, $sailsRef) {
+    app.factory('socket',['$sailsSocket', function($sailsSocket){
 
-    // Get the comments from the sails server.
-    $scope.comments = $sailsRef('/comment');
+        return $sailsSocket()
 
-    // You can also add a second argument that is a query paramater to
-    // get resources at endpoint that fulfulls the criteria.
-    //
-    // $scope.comments = $sails('/comment', {body: 'test'});
+    }])
 
-    // Adds a comment.
-    $scope.addComment = function (e) {
-      if (e.keyCode !== 13) return;
-      $scope.comments.$add({
-        body: $scope.newComment
-      });
-      $scope.newComment = '';
-    };
 
-    // Remove a comment.
-    $scope.deleteComment = function (comment) {
-      // $scope.comments.$remove(comment);
-      // Now you can also update a comment like this:
-      comment.$remove();
-    };
 
-    // Update a comment.
-    $scope.updateComment = function (comment) {
-      // $scope.comments.$update(comment);
-      // Now you can also update a comment like this:
-      comment.$update();
-    };
+    app.controller('CommentCtrl', ['$scope','socket',function ($scope,socket) {
 
-  }]);
+        socket.on('comment',function(msg){
+            console.log(msg)
+        })
 
-  app.controller('UserCtrl', ['$scope', '$sailsRef', function ($scope, $sailsRef) {
+        socket.get('/comment').success(function(comments){
+            $scope.comments = comments;
+        })
 
-    // Get individual user resource;
-    $scope.user = $sailsRef('/user/5');
+        socket.post('/comment',{body : 'helloo sockets'}).then(function(newComment){
+            console.log(newComment)
+        })
 
-    // update model
-    $scope.updateUser = function () {
-      $scope.user.$update();
-    }
+        socket.get('/comments').success(function(comments){
+            console.log(comments)
+            $scope.comments = comments;
+        })
 
-    // remove model
-    $scope.removeUser = function () {
-      $scope.user.$remove();
-    }
 
-  }]);
+        socket.connect().then(function(sock){
+            console.log('connected',sock)
+
+
+
+        },function(err){
+            console.log('connection error',err)
+        },function(not){
+            console.log('connection update',not)
+        })
+
+        // Get the comments from the sails server.
+        // $scope.comments = $sails('/comment');
+        //
+        // // Adds a comment.
+        // $scope.addComment = function (e) {
+        //   if (e.keyCode != 13) return;
+        //
+        //   $scope.comments.$add({
+        //     body: $scope.newComment
+        //   });
+        //
+        //   $scope.newComment = '';
+        // };
+
+    }]);
 
 })();

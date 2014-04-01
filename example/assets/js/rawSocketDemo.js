@@ -6,9 +6,15 @@
 
         return $sailsSocket()
 
+    }]);
+
+    app.run(['socket',function(socket){
+
+        $sailsSocket.connect().then(function(){
+            console.log('connected!')
+        })
+
     }])
-
-
 
     app.controller('CommentCtrl', ['$scope','socket',function ($scope,socket) {
 

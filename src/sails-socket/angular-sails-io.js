@@ -3,7 +3,7 @@
 /**
  * @ngdoc module
  * @name sails.io
- * @file angularSails.io.js
+ * @file angular-sails-io.js
  *
  * @description
  *
