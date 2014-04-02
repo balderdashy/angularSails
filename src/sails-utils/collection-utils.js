@@ -1,8 +1,6 @@
-(function() {
-
 'use strict';
 
-var collection = angular.module('sailsBaseCollection', []);
+angular.module('sails.utils.collections', [])
 
 /**
  * Utility methods for collections
@@ -17,7 +15,7 @@ var collection = angular.module('sailsBaseCollection', []);
  * https://github.com/jashkenas/underscore
  * ******************************************************************
  */
-collection.factory('collectionUtils', function () {
+.factory('collectionUtils', function () {
 
   var _ = {};
 
@@ -111,5 +109,3 @@ collection.factory('collectionUtils', function () {
   };
 
 });
-
-})();

@@ -1,59 +1,70 @@
 (function () {
 
-    var app = angular.module('AngularSailsApp', ['angularSails.io']);
+    var app = angular.module('sailsDemoApp', ['sails','sails.resource']);
 
-    app.factory('socket',['$sailsSocket', function($sailsSocket){
-
-        return $sailsSocket()
-
-    }])
+    app.config(['$sailsResourceProvider',function($sailsResourceProvider){
 
 
 
-    app.controller('CommentCtrl', ['$scope','socket',function ($scope,socket) {
+    }]);
 
-        socket.on('comment',function(msg){
-            console.log(msg)
+
+    app.factory('Comment',['$sailsResource',function($sailsResource){
+
+        function Comment(data){
+            this.string('title');
+            this.belongsTo('post')
+        }
+
+        var CommentModel = $sailsResource(Comment);
+
+        CommentModel.api.set('http://localhost:1337');
+        return CommentModel;
+
+    }]);
+
+    app.factory('Post',['$sailsResource',function($sailsResource){
+
+        function Post(data){
+            this.string('title');
+            this.hasMany('comments',{provider : 'Comment'})
+        }
+
+
+
+        var PostModel = $sailsResource(Post)
+
+        PostModel.api.set('http://localhost:1337');
+        return PostModel;
+
+    }]);
+
+
+    app.controller('CommentCtrl', ['$scope','Comment','Post',function ($scope,Comment,Post) {
+
+        Post.find().then(function(posts){
+            console.log(posts)
+            $scope.posts = posts;
         })
 
-        socket.get('/comment').success(function(comments){
-            $scope.comments = comments;
-        })
+        $scope.addComment = function(newComment){
 
-        socket.post('/comment',{body : 'helloo sockets'}).then(function(newComment){
-            console.log(newComment)
-        })
+           var saveComment =  Comment.$create(newComment);
 
-        socket.get('/comments').success(function(comments){
-            console.log(comments)
-            $scope.comments = comments;
-        })
+            saveComment.then(function(newComment){
+                $scope.comments.push(newComment);
+            })
+        }
 
+        $scope.addPost = function(newPost){
 
-        socket.connect().then(function(sock){
-            console.log('connected',sock)
+            var savePost =  Post.$create(newPost);
 
+            savePost.then(function(newPost){
+                $scope.posts.push(newPost);
+            })
+        }
 
-
-        },function(err){
-            console.log('connection error',err)
-        },function(not){
-            console.log('connection update',not)
-        })
-
-        // Get the comments from the sails server.
-        // $scope.comments = $sails('/comment');
-        //
-        // // Adds a comment.
-        // $scope.addComment = function (e) {
-        //   if (e.keyCode != 13) return;
-        //
-        //   $scope.comments.$add({
-        //     body: $scope.newComment
-        //   });
-        //
-        //   $scope.newComment = '';
-        // };
 
     }]);
 

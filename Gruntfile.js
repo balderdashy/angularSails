@@ -22,31 +22,37 @@ module.exports = function(grunt) {
     },
 
 
-  copy: {
-      dev: {
-
-          src: [ '<%= app.src %>/**/*.js' ],
-          dest: '<%= app.example %>/assets/js/deps',
-          expand: true,
-          flatten : true
-      }
-  },
 
     concat: {
-      dev: {
+      sails: {
         src: [
-          '<%= app.src %>/sails-utils/*.js',
-          '<%= app.src %>/angular-sails-io.js',
-          '<%= app.src %>/angular-sails-base.js'
+          '<%= app.src %>/sails/sails.js',
+          '<%= app.src %>/stream/*.js'
+//          '<%= app.src %>/angular-sails-base.js'
         ],
-        dest: '<%= app.dist %>/<%= app.pkg.name %>.js'
-      }
+        dest: '<%= app.dist %>/angular-sails.js'
+      },
+      resource: {
+            src: [
+                '<%= app.src %>/sails-resource/sails-resource.js',
+                '<%= app.src %>/sails-resource/**/*.js'
+            ],
+            dest: '<%= app.dist %>/angular-sails-resource.js'
+      },
+       socket: {
+            src: [
+                '<%= app.src %>/sails-socket/**/*.js'
+            ],
+            dest: '<%= app.dist %>/angular-sails.io.js'
+        }
     },
 
     copy: {
       example: {
-        src: '<%= app.dist %>/angularSails.js',
-        dest: '<%= app.example %>/js/deps/angularSails.js',
+        src: '<%= app.dist %>/*.js',
+        dest: '<%= app.example %>/js/angular-sails/',
+        flatten : true,
+        expand : true
       }
     },
 
@@ -81,7 +87,7 @@ module.exports = function(grunt) {
     watch: {
       source: {
         files: ['<%= app.src %>/**/*.js'],
-        tasks: ['copy:dev'],
+        tasks: ['concat:sails','concat:resource','concat:socket','copy:example'],
         options: {
           debounceDelay: 500,
           atBegin: true
@@ -112,18 +118,18 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-copy');
 
   // Registered tasks.
-  grunt.registerTask('default', ['dev']);
-
-  grunt.registerTask('dev', ['watch']);
-
-  grunt.registerTask('test', ['karma:precompile']);
-
-  grunt.registerTask('build', [
-    'jshint',
-    'karma:precompile',
-    'concat',
-    'uglify',
-    'copy',
-    'karma:postcompile'
-  ]);
+ grunt.registerTask('default', ['concat:sails']);
+//
+//  grunt.registerTask('dev', ['watch']);
+//
+//  grunt.registerTask('test', ['karma:precompile']);
+//
+//  grunt.registerTask('build', [
+////    'jshint',
+////    'karma:precompile',
+////    'concat',
+//    'uglify',
+//    'copy',
+//    'karma:postcompile'
+//  ]);
 };

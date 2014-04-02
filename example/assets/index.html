@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html ng-app="AngularSailsApp">
+<html ng-app="sailsDemoApp">
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE-edge,chrome=1">
@@ -23,26 +23,31 @@
   </head>
 
   <body ng-controller="CommentCtrl">
+<h1>Foobar</h1>
 
-    <h1>Comments:</h1>
-    <ul ng-cloak>
-      <li ng-repeat="comment in comments">
-        comment: {{comment.body}} cid: {{comment.cid}}
-        <a href="" ng-click="deleteComment(comment)">x</a>
-        <a href="" ng-click="editing = !editing">edit</a>
-        <input ng-show="editing" ng-model="comment.body"/>
-        <button ng-show="editing"ng-click="updateComment(comment); editing = !editing">update</button>
+<form name="newCommentForm">
+    <input type="text" ng-model="newPost.title"/>
+    <button ng-click="addPost(newPost)"></button>
+</form>
+
+  <ul>
+      <li ng-repeat="post in posts">
+          {{ post.title }}
+          <ul>
+              <li ng-repeat="comment in post.comments">{{ comment }}</li>
+          </ul>
+
       </li>
-    </ul>
-
-    <textarea ng-keyup="addComment($event)" ng-model="newComment" placeholder="Enter your comment..."
-    autofocus></textarea>
-    <p>Press enter to submit comment</p>
+  </ul>
 
     <!-- dependencies -->
-    <script src="js/deps/socket.io.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.6/angular.min.js"></script>
-    <script src="js/deps/angular-sails-io.js"></script>
+    <script src="js/socket.io.js"></script>
+    <script src="js/angular/angular.js"></script>
+    <script src="js/lodash.min.js"></script>
+    <script src="js/async.js"></script>
+    <script src="js/angular-sails/angular-sails.js"></script>
+    <script src="js/angular-sails/angular-sails.io.js"></script>
+    <script src="js/angular-sails/angular-sails-resource.js"></script>
 
     <!-- app src -->
     <script src="js/app.js"></script>

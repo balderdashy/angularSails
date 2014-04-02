@@ -3,7 +3,7 @@
  * ------------------------------------------------------------------------
  * description.
  */
-(function() {
+
   'use strict';
 
 /**
@@ -11,7 +11,7 @@
  * ------------------------------------------------------------------------
  *
  */
-var angularSailsBase = angular.module('angularSails.base', ['angularSails.io', 'sailsBaseCollection']);
+angular.module('sails.waterbase', ['sails.io', 'sails.utils.collections'])
 
 // Define the `orderByPriority` filter that sorts objects returned by
 // $firebase in the order of priority. Priority is defined by Firebase,
@@ -27,7 +27,7 @@ var angularSailsBase = angular.module('angularSails.base', ['angularSails.io', '
  * models in the collection and thus, guarantees an order as well as the ability to manipulate and
  * filter the array with other angular filters.
  */
-angularSailsBase.filter('collectionToArray', function() {
+.filter('collectionToArray', function() {
   return function(input) {
     var collectionArray = [];
 
@@ -42,28 +42,28 @@ angularSailsBase.filter('collectionToArray', function() {
     });
     return collectionArray;
   };
-});
+})
 
 /**
  * Angular sails socket service
  * ------------------------------------------------------------------------
  * Socket service that will be used by angular sails service,
  */
-angularSailsBase.factory('angularSailsSocket',
+.factory('angularSailsSocket',
   ['sailsSocketFactory', function (sailsSocketFactory) {
   return sailsSocketFactory();
-}]);
+}])
 
 /**
- * The angular sailsBase service.
+ * The angular waterbase provider.
  * ------------------------------------------------------------------------
  *
  */
-angularSailsBase.factory('$sailsRef',
+.factory('$Waterbase',
   ['angularSailsSocket', 'collectionUtils', function (angularSailsSocket, collectionUtils) {
 
-  // Angular sails constructor.
-  var AngularSails = function (angularSailsSocket, collectionUtils, url, query) {
+  // Waterbase constructor.
+  var Waterbase = function (angularSailsSocket, collectionUtils, url, query) {
     this.angularSailsSocket = angularSailsSocket;
     this.collectionUtils = collectionUtils;
     this.url = url;
@@ -74,14 +74,14 @@ angularSailsBase.factory('$sailsRef',
     this.socketModelCid = undefined;
   };
 
-  // Angular sails prototype.
-  AngularSails.prototype = {
+  // Waterbase prototype.
+  Waterbase.prototype = {
 
     /**
      * Constuct method creates an object that will be applied to the scope. This will give
      * the scope some methods it can use to perform 3 way data binding operations.
      *
-     * @return {Object} [Angular Sails object that represents a resource and offers methods to
+     * @return {Object} [Waterbase object that represents a resource and offers methods to
      *                   manipulate data at the specified url]
      */
     construct: function () {
@@ -392,11 +392,11 @@ angularSailsBase.factory('$sailsRef',
   // Our angular sails service returns a function that creates an angular sails
   // instance and hooks it up to the resource at the passed in url.
   return function (url, query) {
-    var angularSails = new AngularSails(angularSailsSocket, collectionUtils, url, query);
+    var angularSails = new Waterbase(angularSailsSocket, collectionUtils, url, query);
     return angularSails.construct();
   };
 
 }]);
 
-})();
+
 
