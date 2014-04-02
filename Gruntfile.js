@@ -26,7 +26,8 @@ module.exports = function(grunt) {
         src: [
           '<%= app.src %>/utils/*.js',
           '<%= app.src %>/angular-sails-io.js',
-          '<%= app.src %>/angular-sails-base.js'
+          '<%= app.src %>/angular-sails-base.js',
+          '<%= app.src %>/angular-sails-stream.js'
         ],
         dest: '<%= app.dist %>/<%= app.pkg.name %>.js'
       }
