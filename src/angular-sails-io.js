@@ -58,7 +58,7 @@
 
           // Send the message over the socket
           socket.emit(method, requestJson, asyncAngularify(socket, function afterEmitted(result) {
-            var parsedResult = result;
+            var parsedResult = result || { status : undefined };
             if (result && typeof result === 'string') {
               try {
                 parsedResult = io.JSON.parse(result);
