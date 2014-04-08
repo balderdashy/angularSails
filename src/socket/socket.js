@@ -27,7 +27,7 @@
  * For more information, visit:
  * http://github.com/balderdashy/angularSails
  */
-angular.module('angularSails.io', [])
+angular.module('sails.io', [])
 
 
 /**
@@ -39,7 +39,7 @@ angular.module('angularSails.io', [])
  * //TODO
  *
  */
-    .constant('$$sailsConnectionMetaData', {
+    .constant('$sailsSocketConstants', {
 
         version: '__sails_io_sdk_version',
         platform: '__sails_io_sdk_platform',
@@ -47,16 +47,7 @@ angular.module('angularSails.io', [])
 
     })
 
-/**
- * @ngdoc constant
- * @name sails.io.$SAILS_SDK_PARAMS
- *
- * @description
- *
- * //TODO
- *
- */
-    .constant('$$sailsSDKParams', {
+    .constant('$sailsSocketParams', {
 
         version: '0.10.0',  // TODO: pull this automatically from package.json during build.
         platform: typeof module === 'undefined' ? 'browser' : 'node',
@@ -74,7 +65,7 @@ angular.module('angularSails.io', [])
  * //TODO
  *
  */
-    .factory('$$sailsSDKInfo', ['$$sailsConnectionMetaData', '$$sailsSDKParams', function ($$sailsConnectionMetaData, $$sailsSDKParams) {
+    .factory('$$sailsSDKInfo', ['$sailsSocketConstants', '$sailsSocketParams', function ($$sailsConnectionMetaData, $$sailsSDKParams) {
 
         function _getVersionString() {
 
@@ -126,10 +117,39 @@ angular.module('angularSails.io', [])
         var _socketDefaults = {
             autoConnect: true,
             environment: 'development',
-            baseUrl: 'http://localhost:1337'
+            url: 'http://localhost:1337'
         };
 
-        var SailsSocketFactory = function ($q, $timeout, SocketIo, $$sailsSDKInfo) {
+        var CONTENT_TYPE_APPLICATION_JSON = {'Content-Type': 'application/json;charset=utf-8'};
+
+        var _providerDefaults  = this.defaults = {
+            // transform incoming response data
+            transformResponse: [function(data) {
+
+                return data;
+            }],
+
+            // transform outgoing request data
+            transformRequest: [function(d) {
+                return isObject(d) && !isFile(d) && !isBlob(d) ? toJson(d) : d;
+            }],
+
+            // default headers
+            headers: {
+                common: {
+                    'Accept': 'application/json, text/plain, */*'
+                },
+                post:   angular.copy(CONTENT_TYPE_APPLICATION_JSON),
+                put:    angular.copy(CONTENT_TYPE_APPLICATION_JSON),
+                patch:  angular.copy(CONTENT_TYPE_APPLICATION_JSON)
+            },
+
+            xsrfCookieName: 'XSRF-TOKEN',
+            xsrfHeaderName: 'X-XSRF-TOKEN'
+        };
+
+
+        var SailsSocketFactory = function ($window,$http,$httpBackend,$browser, $q, $timeout, SocketIo, $$sailsSDKInfo) {
 
 
             var versionString = $$sailsSDKInfo.getVersionString();
@@ -204,22 +224,32 @@ angular.module('angularSails.io', [])
             }
 
 
-            function _sendRequest(socket, requestCtx) {
+            function _sendRequest(socket, request) {
 
-                // Since callback is embedded in requestCtx,
-                // retrieve it and delete the key before continuing.
-                var response = requestCtx.response;
-                delete requestCtx.response;
+               var response = $q.defer();
 
+                response.promise.success = function (fn) {
+                    response.promise.then(function (response) {
+                        fn(response.data, response.statusCode, response.headers, request);
+                    });
+                    return response.promise;
+                };
+
+                response.promise.error = function (fn) {
+                    response.promise.then(null, function (response) {
+                        fn(response.data, response.statusCode, response.headers, request);
+                    });
+                    return response.promise;
+                };
                 // Name of socket request listener on the server
                 // ( === the request method, e.g. 'get', 'post', 'put', etc. )
-                var sailsEndpoint = requestCtx.method;
+                var sailsEndpoint = request.method;
 
 
-                socket.emit(sailsEndpoint, requestCtx, tick(socket, function serverResponded(responseCtx) {
-                    console.log(responseCtx)
+                socket.emit(sailsEndpoint, request, tick(socket, function serverResponded(responseCtx) {
 
-                    var serverResponse = new SailsResponse(requestCtx, responseCtx);
+
+                    var serverResponse = new SailsResponse(request, responseCtx);
 
                     if (serverResponse.status >= 400) {
                         response.reject(serverResponse);
@@ -228,6 +258,8 @@ angular.module('angularSails.io', [])
                         response.resolve(serverResponse);
                     }
                 }));
+
+                return response.promise;
             }
 
             /**
@@ -237,42 +269,58 @@ angular.module('angularSails.io', [])
              * @param options
              * @constructor
              */
-            var SailsSocket = function (options) {
+            function SailsSocket(config) {
+
+                config = config || _socketDefaults;
                 var self = this;
 
-                self._requestQueue = []
-
-                self._socketOptions = options || {}
+                self._requestQueue = [];
 
                 self._socket = new TmpSocket();
 
+                var xsrfValue = urlIsSameOrigin(config.url)
+                    ? $browser.cookies()[config.xsrfCookieName || _providerDefaults.xsrfCookieName]
+                    : undefined;
+                if (xsrfValue) {
+                    headers[(config.xsrfHeaderName || _providerDefaults.xsrfHeaderName)] = xsrfValue;
+                }
+
+
             };
 
-            SailsSocket.prototype.connect = function (url, opts) {
+            SailsSocket.prototype.connect = function (opts) {
 
+                opts = opts || {};
                 var connection = $q.defer();
+
+//                if(options.XDomain){
+//
+//                }
+
 
                 var self = this;
 
-                opts = opts || {};
 
                 // If explicit connection url is specified, use it
-                url = url || self._socketOptions.baseUrl || undefined;
+                var url = url || _socketDefaults.url || undefined;
 
                 // Mix the current SDK version into the query string in
                 // the connection request to the server:
                 if (typeof opts.query !== 'string') opts.query = versionString;
                 else opts.query += '&' + versionString;
 
-                var socket = SocketIo.connect(url, opts);
+
+                var socket = SocketIo.connect(url, opts,{'force new connection' : true});
 
                 self._socket = self._socket.become(socket);
 
                 self._socket.on('connect', function () {
 
+
                     angular.forEach(self._requestQueue, function (queuedRequest,idx) {
 
                         _sendRequest(self._socket, queuedRequest);
+
 
                     })
                 })
@@ -328,9 +376,7 @@ angular.module('angularSails.io', [])
 
             SailsSocket.prototype._request = function (options) {
 
-                var response = $q.defer()
-
-
+                var self = this;
                 var usage = 'Usage:\n socket.' +
                     (options.method || 'request') +
                     '( destinationURL, [dataToSend] )';
@@ -345,45 +391,23 @@ angular.module('angularSails.io', [])
                     throw new Error('Invalid or missing URL!\n' + usage);
                 }
 
-                var self = this;
-
                 // Build a simulated request object.
                 var request = {
                     method: options.method,
                     data: options.data,
                     url: options.url,
                     headers: options.headers,
-                    response: response
+
                 };
 
-                response.promise.success = function (fn) {
-                    response.promise.then(function (response) {
-                        console.log(response)
-                      fn(response.data, response.statusCode, response.headers, request);
-                    });
-                    return response.promise;
-                };
-
-                response.promise.error = function (fn) {
-                    response.promise.then(null, function (response) {
-                        fn(response.data, response.statusCode, response.headers, request);
-                    });
-                    return response.promise;
-                };
-
-                if (self._socket && self.isConnected()) {
-
-                    _sendRequest(self._socket, request);
-
-                }
-                else {
-
-                    self._requestQueue.push(request);
-
-                }
+                var response = _sendRequest(self._socket,request);
 
 
-                return response.promise;
+
+                return response;
+
+
+
             };
 
             SailsSocket.prototype.on = function (eventName, callback) {
@@ -392,12 +416,21 @@ angular.module('angularSails.io', [])
 
                 self._socket.on(eventName, tick(self._socket, callback));
 
-            }
+            };
 
+
+            function doPreflightRequest(url){
+
+                return $http.get(host + '/__getCookie');
+
+            }
 
             return function (options) {
 
+
                 var sailSocket = new SailsSocket(options);
+
+                sailSocket.connect();
 
                 return sailSocket;
 
@@ -406,6 +439,6 @@ angular.module('angularSails.io', [])
         };
 
         return {
-            '$get': ['$q', '$timeout', 'SocketIo', '$$sailsSDKInfo', SailsSocketFactory ]
+            '$get': ['$window','$http','$httpBackend','$browser','$q', '$timeout', 'SocketIo', '$$sailsSDKInfo', SailsSocketFactory ]
         }
     });

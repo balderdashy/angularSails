@@ -20,37 +20,25 @@
         resize: none;
       }
     </style>
+
+      <script src="js/socket.io.js"></script>
+      <script src="js/vendor/angular.js"></script>
+
+
+      <script src="js/vendor/lodash.min.js"></script>
+      <script src="js/async.js"></script>
+      <script src="js/angular-sails/angular-sails-socket.js"></script>
+
+      <!-- app src -->
+      <script src="js/socketDemo.js"></script>
   </head>
 
-  <body ng-controller="CommentCtrl">
-<h1>Foobar</h1>
+  <body>
+<h1>{{ 'hello' }}</h1>
 
-<form name="newCommentForm">
-    <input type="text" ng-model="newPost.title"/>
-    <button ng-click="addPost(newPost)"></button>
-</form>
-
-  <ul>
-      <li ng-repeat="post in posts">
-          {{ post.title }}
-          <ul>
-              <li ng-repeat="comment in post.comments">{{ comment }}</li>
-          </ul>
-
-      </li>
-  </ul>
 
     <!-- dependencies -->
-    <script src="js/socket.io.js"></script>
-    <script src="js/angular/angular.js"></script>
-    <script src="js/lodash.min.js"></script>
-    <script src="js/async.js"></script>
-    <script src="js/angular-sails/angular-sails.js"></script>
-    <script src="js/angular-sails/angular-sails.io.js"></script>
-    <script src="js/angular-sails/angular-sails-resource.js"></script>
 
-    <!-- app src -->
-    <script src="js/app.js"></script>
   </body>
 
 

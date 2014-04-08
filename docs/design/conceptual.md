@@ -23,7 +23,7 @@ angularSails - a set of angularJS modules for easy and powerful integration with
 
 ##Stack
 
-###angularSails `angular-sails.js`
+###angularSails `angular-ngsails.js`
 Core module for angularSails SDK
 
 ###angularSails.io `angular-sails-socket.js`

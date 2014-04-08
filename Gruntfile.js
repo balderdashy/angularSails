@@ -16,34 +16,45 @@ module.exports = function(grunt) {
     app: {
       src: 'src',
       dist: 'dist',
+      vendor: 'vendor',
       tests: 'tests',
       example: 'example/assets/',
       pkg: grunt.file.readJSON('bower.json')
     },
 
 
+     traceur: {
+          options: {
+              // traceur options here
+          },
+          custom: {
+              files:{
+                  'build/all.js': ['js/**/*.js']
+              }
+          }
+      },
 
     concat: {
       sails: {
         src: [
-          '<%= app.src %>/sails/sails.js',
-          '<%= app.src %>/stream/*.js'
+          '<%= app.src %>/sails/ngsails.js',
+          '<%= app.src %>/sails/**/*.js'
 //          '<%= app.src %>/angular-sails-base.js'
         ],
-        dest: '<%= app.dist %>/angular-sails.js'
+        dest: '<%= app.dist %>/angular-sails-sdk.js'
       },
       resource: {
             src: [
-                '<%= app.src %>/sails-resource/sails-resource.js',
-                '<%= app.src %>/sails-resource/**/*.js'
+                '<%= app.src %>/resource/resource.js',
+                '<%= app.src %>/resource/**/*.js'
             ],
             dest: '<%= app.dist %>/angular-sails-resource.js'
       },
        socket: {
             src: [
-                '<%= app.src %>/sails-socket/**/*.js'
+                '<%= app.src %>/socket/socket.js','<%= app.src %>/socket/utils.js'
             ],
-            dest: '<%= app.dist %>/angular-sails.io.js'
+            dest: '<%= app.dist %>/angular-sails-socket.js'
         }
     },
 
@@ -53,7 +64,13 @@ module.exports = function(grunt) {
         dest: '<%= app.example %>/js/angular-sails/',
         flatten : true,
         expand : true
-      }
+      },
+       vendor: {
+            src: ['<%= app.vendor %>/**/*.js','<%= app.vendor %>/**/*.js'],
+            dest: '<%= app.example %>/js/vendor/',
+            flatten : true,
+            expand : true
+        }
     },
 
     uglify: {

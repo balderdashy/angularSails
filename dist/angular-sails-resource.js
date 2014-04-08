@@ -2,6 +2,10 @@ angular
     .module('sails.resource', ['ng'])
     .provider('$sailsResource', function() {
 
+
+        var _models = {};
+        var _connections = {};
+
         return {
             '$get' : ['SailsBase', 'SailsResourceDefaults', function(Base, Defaults) {
 
@@ -14,7 +18,19 @@ angular
                     return SailsModel;
 
                 }
-            }]
+            }],
+            model : function(identity,model,actions){
+
+                _models[identity] = {
+                    identity : identity,
+                    model : model,
+                    actions : actions
+                }
+
+            },
+            connection : function(connectionName,connection){
+                _connections[connectionName] = connection;
+            }
         };
 
     })
@@ -23,57 +39,12 @@ angular
         prefix : '',
         pluralize : false
     });
-angular
-  .module('sails.resource')
-  .provider('SailsAPI', function() {
-    this.$get = ['SailsHelpers', 'Mime', 'SailsResourceDefaults', function(Helpers, Mime, SailsResourceDefaults) {
-      function API(klass, pk) {
-        var className  = klass.name.hyphenate();
-        var singular   = className.toLowerCase();
-        var plural     = singular.pluralize();
-        var format;
-        var primaryKey = pk || 'id';
-        var path = SailsResourceDefaults.pluralize ? plural : singular;
 
-        this.indexURL  = '';
-        this.createURL = '';
-        this.showURL   = '';
-        this.deleteURL = '';
-        this.updateURL = '';
 
-        this.set = function(url) {
-          if (url.slice(-1) != '/') url = url + '/';
-          this.createURL = url + path;
-          this.updateURL = this.showURL = this.deleteURL = url + path + '/:' + primaryKey;
-          this.indexURL = url + path;
-            this.findURL = url + path + '/:' + primaryKey;
-          return this;
-        };
 
-        this.updatePrimaryKey = function(pk) {
-          primaryKey = pk;
-          this.updateURL = this.updateURL;
-          return this;
-        };
 
-        this.format = function(f) {
-          Mime.types.register(f);
-          if (!f.match(/\.\w+/)) f = '.' + f;
-          format = f;
-          for (var attr in this) {
-            if (attr.match(/URL/)) {
-              _.each(Mime.types, function(mimetype) {
-                var mimeTypeRegex = new RegExp('.' + mimetype);
-                this[attr] = this[attr].replace(mimeTypeRegex, '');
-              }, this);
-              this[attr] += format;
-            };
-          };
-        };
-      }
-      return API;
-    }];
-  });
+
+
 
 angular
   .module('sails.resource')
@@ -283,15 +254,20 @@ angular
     };
   });
 
-// HELPER METHODS
-//
-
-// String.prototype.downcase
-//
-// Shorthand for toLowerCase()
-String.prototype.downcase = function() {
-    return this.toLowerCase();
-}
+angular
+  .module('sails.resource')
+  .provider('Mime', function() {
+    this.$get = [function() {
+      types = ['json'],
+      types.register = function(mimetype) {
+        mimetype = mimetype.replace(/\./g, '');
+        types.nodupush(mimetype);
+      }
+      return {
+        types: types
+      }
+    }];
+  })
 
 angular
     .module('sails.resource')
@@ -345,178 +321,7 @@ angular
         };
     });
 
-angular
-    .module('sails.resource')
-    .provider('SailsSerializer', function() {
-        this.$get = ['json', 'SailsMixin', 'SailsAssociations', 'SailsHelpers', 'SailsDeferred',
-            function(json, mixin, Associations, Helpers, deferred) {
-                function Serializer() {
 
-                    // function serialize(instance)
-                    //
-                    // @param instance {object} - Instance to serialize
-                    //
-                    // Transform associations to foreign keys; a parsable, non-circular JSON structure
-                    // ready to be sent over the wire.
-                    this.serialize = function(instance, options) {
-                        var obj = foreignkeyify(instance);
-                        return json.serialize(obj, options);
-                    };
-
-                    // function deserialize(httpResponse, instance, options)
-                    //
-                    // @param httpResponse {object} - The data received in an http response
-                    //
-                    // @param instance     {object} - An optional instance to update using the data received
-                    //
-                    // @param options      {object} - Additional options to further refine deserialization
-                    //
-                    // Deserialize takes an http response, and by default loads all associations for any
-                    // foreign keys on the response it receives (eager loading). Optionally, deserialize
-                    // can be set to lazy-load (lazy: true), which will load no associations, or
-                    // to over-eager load (overEager: true), which will also load all associations found
-                    // on the associated instances (careful: this can pull down a huge amount of your database,
-                    // and issue many http requests).
-                    this.deserialize = function(httpResponse, instance, options) {
-                        var json, options;
-                        if (httpResponse && httpResponse.data) json = httpResponse.data;
-                        else json = httpResponse;
-
-                        if (!options) options = {lazy: true};
-
-                        if (responseContainsForeignKeys(json, instance)) {
-                            return setAssociationsAndUpdate(instance, json, options);
-                        } else {
-                            return updateLocalInstance(instance, json, options)
-                                .then(function(response) { instance = response; return deferred(instance); });
-                        }
-                    };
-
-                    // function foreignkeyify (instance)
-                    //
-                    // @param instance {object} - A model instance
-                    //
-                    // Takes all associations and transforms the necessary ones into foreign keys
-                    function foreignkeyify(instance) {
-                        var json         = mixin({}, instance, false);
-                        var associations = Associations.get(instance);
-                        _.each(associations.belongsTo, function(association) {
-                            var foreignKeyName       = association.foreignKey;
-                            var associatedName       = Helpers.getClassNameFor(association);
-                            var associatedInstance   = instance[associatedName];
-                            if (!associatedInstance) return;
-                            var primaryKeyName       = Helpers.getPrimaryKeyFor(associatedInstance);
-                            var foreignkey           = associatedInstance[primaryKeyName];
-                            json[foreignKeyName]     = foreignkey;
-                            json[associatedName]     = undefined;
-                        });
-                        return json;
-                    };
-
-                    // function responseContainsForeignKeys (response, instance)
-                    //
-                    // True/false - Response contains foreign keys
-                    function responseContainsForeignKeys(response, instance) {
-                        var answer = false;
-                        var associations = Associations.get(instance);
-                        _.each(associations.belongsTo, function(foreignRel) {
-                            var foreignKey = foreignRel.foreignKey;
-                            if (response[foreignKey] || response == foreignKey) answer = true;
-                        });
-                        return answer;
-                    };
-                };
-
-                function updateLocalInstance(instance, response, options) {
-                    if (options && options.update == false) return deferred(instance);
-                    instance.update(response);
-                    var primaryKey = Helpers.getPrimaryKeyFor(instance);
-                    instance.constructor.cached.cache(instance, primaryKey);
-
-                    instance.validations.updateInstance(instance);
-                    if (!options.lazy) return eagerLoad(instance).then(finishUpdate);
-                    return finishUpdate();
-
-                    function finishUpdate() {
-                        instance.establishBelongsTo();
-                        return deferred(instance);
-                    };
-                };
-
-                function setAssociationsAndUpdate(instance, response, options) {
-                    console.log(options)
-                    if (options && options.update == false) options.update = true;
-                    var associationsToUpdate = [];
-                    var associations = Associations.get(instance);
-                    if (associations.belongsTo.length >= 1) {
-                        _.each(associations.belongsTo, function(foreignRel) {
-                            if (!response[foreignRel.foreignKey]) return;
-                            var association    = foreignRel.klass;
-                            var associatedName = association.name.camelize();
-                            var foreignKey     = foreignRel.foreignKey;
-                            var query          = response[foreignKey];
-
-                            // Unless overEager is set, only eagerly load one level of associations.
-
-                            var queryOptions = {};
-                            for (var i in options) { queryOptions[i] = options[i]; }
-                            if (!options.overEager) queryOptions.lazy = true;
-
-                            associationsToUpdate.push(function(callback) {
-                                console.log(query,queryOptions)
-                                foreignRel.klass.find(query, queryOptions).then(function(association) {
-                                    response[associatedName] = association;
-                                    delete response[foreignKey];
-                                    callback(null, response);
-                                })
-                            });
-                        });
-                    }
-
-                    async.series(associationsToUpdate, function(err, response) {
-                        response = _.first(response);
-                        updateLocalInstance(instance, response, options);
-                    });
-
-                    return deferred(instance);
-                };
-
-                function eagerLoad(instance) {
-                    var queries      = [];
-                    var associations = Associations.get(instance);
-                    var dependentList = [associations.hasMany, associations.hasOne];
-                    _.each(dependentList, function(dependentsArray) {
-                        _.each(dependentsArray, function(association) {
-                            var dependent     = Associations.getDependents(association, instance);
-                            var foreignKey    = dependent.foreignKey;
-                            var query         = {};
-                            var primaryKey    = Helpers.getPrimaryKeyFor(instance);
-
-                            query[foreignKey] = instance[primaryKey];
-                            queries.push(function(callback) {
-                                association.klass.where(query, {lazy: true}).then(function(response) {
-                                    _.each(response, function(associ) {
-                                        if (_.include(associations.hasMany, association)) {
-                                            var name = association.klass.name.pluralize().camelize();
-                                            instance[name].nodupush(associ);
-                                        } else {
-                                            var name = association.klass.name.singularize().camelize();
-                                            if (!instance[name]) instance[name] = associ;
-                                        }
-                                        callback(null, instance);
-                                    });
-                                });
-                            });
-                        });
-                    });
-
-                    async.series(queries, function(err, callback) {});
-                    return deferred(instance);
-                };
-
-                return Serializer;
-            }];
-    });
 
 angular
     .module('sails.resource')
@@ -579,25 +384,7 @@ angular
         };
     });
 
-angular
-    .module('sails.resource')
-    .provider('SailsDeferred', function() {
-        this.$get = ['$q', function($q) {
-            // function deferred(instance, error)
-            //
-            // @param {instance} - An instance to wrap in a deferred object
-            // @param {error}    - Error to return
-            //
-            // Returns an object or error wrapped in a deferred. Responds to then() method. Shortcut
-            // for establishing these boilerplate lines.
-            return function deferred(instance, error) {
-                var deferred = $q.defer();
-                if (error) deferred.reject(error);
-                else deferred.resolve(instance);
-                return deferred.promise;
-            };
-        }];
-    });
+
 
 angular
     .module('sails.resource')
@@ -870,7 +657,7 @@ angular
 
                         if (instance.$invalid) {
                             _this.emit('$save:fail', instance);
-                            return deferred(null, instance);
+                            return x(null, instance);
                         }
 
                         if (put) method = 'put';
@@ -1684,64 +1471,177 @@ angular
             }];
     });
 angular
-  .module('sails.resource')
-  .provider('SailsEventable', function() {
-    this.$get = function() {
-      function Eventable() {
-        var events = {handlers: {}};
+    .module('sails.resource')
+    .provider('SailsSerializer', function() {
+        this.$get = ['json', 'SailsMixin', 'SailsAssociations', 'SailsHelpers', 'SailsDeferred',
+            function(json, mixin, Associations, Helpers, deferred) {
+                function Serializer() {
 
-        Object.defineProperty(this, 'emit', {
-          enumerable: true,
-          value: function(eventType) {
-            if (!events.handlers[eventType]) return;
-            var handlerArgs = Array.prototype.slice.call(arguments, 1);
-            for (var i = 0, l = handlerArgs.length; i<l; i++) {
-              events.handlers[eventType][i].apply(this, handlerArgs);
-            }
-            return events;
-          }
-        });
+                    // function serialize(instance)
+                    //
+                    // @param instance {object} - Instance to serialize
+                    //
+                    // Transform associations to foreign keys; a parsable, non-circular JSON structure
+                    // ready to be sent over the wire.
+                    this.serialize = function(instance, options) {
+                        var obj = foreignkeyify(instance);
+                        return json.serialize(obj, options);
+                    };
 
-        function addAspect(eventType, handler) {
-          if (!(eventType in events.handlers)) {
-            events.handlers[eventType] = [];
-          }
-          events.handlers[eventType].push(handler);
-          return this;
-        };
+                    // function deserialize(httpResponse, instance, options)
+                    //
+                    // @param httpResponse {object} - The data received in an http response
+                    //
+                    // @param instance     {object} - An optional instance to update using the data received
+                    //
+                    // @param options      {object} - Additional options to further refine deserialization
+                    //
+                    // Deserialize takes an http response, and by default loads all associations for any
+                    // foreign keys on the response it receives (eager loading). Optionally, deserialize
+                    // can be set to lazy-load (lazy: true), which will load no associations, or
+                    // to over-eager load (overEager: true), which will also load all associations found
+                    // on the associated instances (careful: this can pull down a huge amount of your database,
+                    // and issue many http requests).
+                    this.deserialize = function(httpResponse, instance, options) {
+                        var json, options;
+                        if (httpResponse && httpResponse.data) json = httpResponse.data;
+                        else json = httpResponse;
 
-        this.before = function(eventType, handler) {
-          return addAspect(eventType + ':called', handler);
-        };
+                        if (!options) options = {lazy: true};
 
-        this.after = function(eventType, handler) {
-          return addAspect(eventType + ':complete', handler);
-        };
+                        if (responseContainsForeignKeys(json, instance)) {
+                            return setAssociationsAndUpdate(instance, json, options);
+                        } else {
+                            return updateLocalInstance(instance, json, options)
+                                .then(function(response) { instance = response; return deferred(instance); });
+                        }
+                    };
 
-        this.fail  = function(eventType, handler) {
-          return addAspect(eventType + ':fail', handler);
-        };
+                    // function foreignkeyify (instance)
+                    //
+                    // @param instance {object} - A model instance
+                    //
+                    // Takes all associations and transforms the necessary ones into foreign keys
+                    function foreignkeyify(instance) {
+                        var json         = mixin({}, instance, false);
+                        var associations = Associations.get(instance);
+                        _.each(associations.belongsTo, function(association) {
+                            var foreignKeyName       = association.foreignKey;
+                            var associatedName       = Helpers.getClassNameFor(association);
+                            var associatedInstance   = instance[associatedName];
+                            if (!associatedInstance) return;
+                            var primaryKeyName       = Helpers.getPrimaryKeyFor(associatedInstance);
+                            var foreignkey           = associatedInstance[primaryKeyName];
+                            json[foreignKeyName]     = foreignkey;
+                            json[associatedName]     = undefined;
+                        });
+                        return json;
+                    };
 
-      };
-      return Eventable;
-    };
-  });
+                    // function responseContainsForeignKeys (response, instance)
+                    //
+                    // True/false - Response contains foreign keys
+                    function responseContainsForeignKeys(response, instance) {
+                        var answer = false;
+                        var associations = Associations.get(instance);
+                        _.each(associations.belongsTo, function(foreignRel) {
+                            var foreignKey = foreignRel.foreignKey;
+                            if (response[foreignKey] || response == foreignKey) answer = true;
+                        });
+                        return answer;
+                    };
+                };
 
-angular
-  .module('sails.resource')
-  .provider('Mime', function() {
-    this.$get = [function() {
-      types = ['json'],
-      types.register = function(mimetype) {
-        mimetype = mimetype.replace(/\./g, '');
-        types.nodupush(mimetype);
-      }
-      return {
-        types: types
-      }
-    }];
-  })
+                function updateLocalInstance(instance, response, options) {
+                    if (options && options.update == false) return deferred(instance);
+                    instance.update(response);
+                    var primaryKey = Helpers.getPrimaryKeyFor(instance);
+                    instance.constructor.cached.cache(instance, primaryKey);
 
+                    instance.validations.updateInstance(instance);
+                    if (!options.lazy) return eagerLoad(instance).then(finishUpdate);
+                    return finishUpdate();
+
+                    function finishUpdate() {
+                        instance.establishBelongsTo();
+                        return deferred(instance);
+                    };
+                };
+
+                function setAssociationsAndUpdate(instance, response, options) {
+                    console.log(options)
+                    if (options && options.update == false) options.update = true;
+                    var associationsToUpdate = [];
+                    var associations = Associations.get(instance);
+                    if (associations.belongsTo.length >= 1) {
+                        _.each(associations.belongsTo, function(foreignRel) {
+                            if (!response[foreignRel.foreignKey]) return;
+                            var association    = foreignRel.klass;
+                            var associatedName = association.name.camelize();
+                            var foreignKey     = foreignRel.foreignKey;
+                            var query          = response[foreignKey];
+
+                            // Unless overEager is set, only eagerly load one level of associations.
+
+                            var queryOptions = {};
+                            for (var i in options) { queryOptions[i] = options[i]; }
+                            if (!options.overEager) queryOptions.lazy = true;
+
+                            associationsToUpdate.push(function(callback) {
+                                console.log(query,queryOptions)
+                                foreignRel.klass.find(query, queryOptions).then(function(association) {
+                                    response[associatedName] = association;
+                                    delete response[foreignKey];
+                                    callback(null, response);
+                                })
+                            });
+                        });
+                    }
+
+                    async.series(associationsToUpdate, function(err, response) {
+                        response = _.first(response);
+                        updateLocalInstance(instance, response, options);
+                    });
+
+                    return deferred(instance);
+                };
+
+                function eagerLoad(instance) {
+                    var queries      = [];
+                    var associations = Associations.get(instance);
+                    var dependentList = [associations.hasMany, associations.hasOne];
+                    _.each(dependentList, function(dependentsArray) {
+                        _.each(dependentsArray, function(association) {
+                            var dependent     = Associations.getDependents(association, instance);
+                            var foreignKey    = dependent.foreignKey;
+                            var query         = {};
+                            var primaryKey    = Helpers.getPrimaryKeyFor(instance);
+
+                            query[foreignKey] = instance[primaryKey];
+                            queries.push(function(callback) {
+                                association.klass.where(query, {lazy: true}).then(function(response) {
+                                    _.each(response, function(associ) {
+                                        if (_.include(associations.hasMany, association)) {
+                                            var name = association.klass.name.pluralize().camelize();
+                                            instance[name].nodupush(associ);
+                                        } else {
+                                            var name = association.klass.name.singularize().camelize();
+                                            if (!instance[name]) instance[name] = associ;
+                                        }
+                                        callback(null, instance);
+                                    });
+                                });
+                            });
+                        });
+                    });
+
+                    async.series(queries, function(err, callback) {});
+                    return deferred(instance);
+                };
+
+                return Serializer;
+            }];
+    });
 angular
     .module('sails.resource')
     .provider('stamp', function() {
@@ -2220,6 +2120,25 @@ angular
         }];
     });
 
+angular
+    .module('sails.resource')
+    .provider('SailsDeferred', function() {
+        this.$get = ['$q', function($q) {
+            // function deferred(instance, error)
+            //
+            // @param {instance} - An instance to wrap in a deferred object
+            // @param {error}    - Error to return
+            //
+            // Returns an object or error wrapped in a deferred. Responds to then() method. Shortcut
+            // for establishing these boilerplate lines.
+            return function deferred(instance, error) {
+                var deferred = $q.defer();
+                if (error) deferred.reject(error);
+                else deferred.resolve(instance);
+                return deferred.promise;
+            };
+        }];
+    });
 angular.module('sails.resource').factory('SailsStringHelpers',function() {
 
     function Inflections() {
@@ -2535,6 +2454,13 @@ angular.module('sails.resource').factory('SailsStringHelpers',function() {
         value: function () {
             var camelized = this.singularize().camelize().replace(/.*\./, '');
             return camelized[0].capitalize() + camelized.slice(1);
+        }
+    });
+
+    Object.defineProperty(STRPROTO, 'downcase', {
+        enumerable: false,
+        value: function () {
+            return this.toLowerCase();
         }
     });
 

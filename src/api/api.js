@@ -1,8 +1,14 @@
 angular
-  .module('sails.resource')
+  .module('sails')
   .provider('SailsAPI', function() {
+
+
+
     this.$get = ['SailsHelpers', 'Mime', 'SailsResourceDefaults', function(Helpers, Mime, SailsResourceDefaults) {
       function API(klass, pk) {
+
+
+
         var className  = klass.name.hyphenate();
         var singular   = className.toLowerCase();
         var plural     = singular.pluralize();

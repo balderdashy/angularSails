@@ -316,6 +316,13 @@ angular.module('sails.resource').factory('SailsStringHelpers',function() {
         }
     });
 
+    Object.defineProperty(STRPROTO, 'downcase', {
+        enumerable: false,
+        value: function () {
+            return this.toLowerCase();
+        }
+    });
+
     Object.defineProperty(STRPROTO, 'toForeignKey', {
         enumerable: false,
         value: function () {
