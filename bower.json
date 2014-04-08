@@ -27,6 +27,8 @@
     "angular-mocks": "~1.2.14"
   },
   "dependencies": {
-    "angular": "~1.2.14"
+    "angular": "~1.2.14",
+      "sails.io.js" : "latest",
+    "lodash": "~2.4.1"
   }
 }

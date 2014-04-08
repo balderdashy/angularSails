@@ -1,6 +1,6 @@
-(function(_){
 'use strict';
-  angular.module('angularSails.stream', [])
+
+angular.module('angularSails.stream', [])
 
     .factory('$sailsStream', [
 
@@ -62,6 +62,5 @@
         };
       }
     ]);
-}(window._));
 
 

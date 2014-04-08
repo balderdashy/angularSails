@@ -23,17 +23,17 @@ angularSails - a set of angularJS modules for easy and powerful integration with
 
 ##Stack
 
-###angularSails `angular-sails.js`
+###angularSails `angular-ngsails.js`
 Core module for angularSails SDK
 
 ###angularSails.io `angular-sails-socket.js`
 Wrapper around Socket.io client, with functionality for Sails and Angular.
 
-###angularSails.stream `angular-sails-stream.js`
+###angularSails.stream `stream.js`
 Simple pubsub/promise module for sailsSockets.
 
 ###angularSails.model `angular-sails-model.js`
 Sails Model functionality on the client side.
 
-###angularSails.base `angular-sails-base.js`
+###angularSails.base `waterbase.js`
 Firebase-like functionality via SailsJS
