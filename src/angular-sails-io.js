@@ -58,7 +58,9 @@
 
           // Send the message over the socket
           socket.emit(method, requestJson, asyncAngularify(socket, function afterEmitted(result) {
-            var parsedResult = result;
+            var parsedResult = result,
+                parsedStatus = null;
+                
             if (result && typeof result === 'string') {
               try {
                 parsedResult = io.JSON.parse(result);
@@ -70,8 +72,11 @@
               }
             }
 
+            if(parsedResult && parsedResult.status) {
+              parsedStatus = parsedResult.status;
+            }
 
-            switch(parsedResult.status){
+            switch(parsedStatus){
               case 404:
                 return sailsDeferredRequest.reject(new Error('404: Not found'));
               case 403:
