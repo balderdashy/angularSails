@@ -52,7 +52,7 @@ module.exports = function(grunt) {
       },
        socket: {
             src: [
-                '<%= app.src %>/socket/socket.js','<%= app.src %>/socket/utils.js'
+                '<%= app.src %>/socket/socket.js','<%= app.src %>/socket/utils.js','<%= app.src %>/socket/socketBackend.js'
             ],
             dest: '<%= app.dist %>/angular-sails-socket.js'
         }
@@ -67,9 +67,9 @@ module.exports = function(grunt) {
       },
        vendor: {
             src: ['<%= app.vendor %>/**/*.js','<%= app.vendor %>/**/*.js'],
-            dest: '<%= app.example %>/js/vendor/',
+            dest: '<%= app.example %>/js/',
             flatten : true,
-            expand : true
+            expand : false
         }
     },
 

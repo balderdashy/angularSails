@@ -22,11 +22,11 @@
     </style>
 
       <script src="js/socket.io.js"></script>
-      <script src="js/vendor/angular.js"></script>
+      <script src="js/vendor/sails.io.js/sails.io.js"></script>
+      <script src="js/vendor/angular/angular.js"></script>
 
 
-      <script src="js/vendor/lodash.min.js"></script>
-      <script src="js/async.js"></script>
+      <script src="js/vendor/lodash/dist/lodash.min.js"></script>
       <script src="js/angular-sails/angular-sails-socket.js"></script>
 
       <!-- app src -->
@@ -37,6 +37,9 @@
 <h1>{{ 'hello' }}</h1>
 
 
+<ul>
+    <li ng-repeat="comment in comments">{{ comment }}</li>
+</ul>
     <!-- dependencies -->
 
   </body>
