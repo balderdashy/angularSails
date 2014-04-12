@@ -34,7 +34,7 @@ NG_DOCS={
   "apis": {
     "api": true
   },
-  "html5Mode": true,
+  "html5Mode": false,
   "startPage": "/api",
   "scripts": [
     "angular.min.js"
