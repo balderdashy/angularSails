@@ -24,9 +24,19 @@ module.exports = function(grunt) {
         },
 
         ngdocs: {
-            all: ['dist/ngsails.js','dist/ngsails.resource.js']
+            all: ['dist/ngsails.js','dist/ngsails.resource.js'],
+            options : {
+                html5Mode: false
+            }
         },
 
+
+        'gh-pages': {
+            options: {
+                base: 'docs'
+            },
+            src: '**/*'
+        },
 
         concat: {
 
@@ -127,7 +137,9 @@ module.exports = function(grunt) {
     });
 
     grunt.loadNpmTasks('grunt-ngdocs');
-   grunt.loadNpmTasks('grunt-contrib-copy');
+    grunt.loadNpmTasks('grunt-gh-pages');
+    grunt.loadNpmTasks('grunt-contrib-copy');
+
 
     // Registered tasks.
     grunt.registerTask('default', ['concat:sails','concat:resource']);
