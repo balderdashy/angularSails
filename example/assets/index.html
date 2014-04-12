@@ -21,21 +21,21 @@
       }
     </style>
 
+      <!-- deps -->
       <script src="js/socket.io.js"></script>
       <script src="js/vendor/sails.io.js/sails.io.js"></script>
       <script src="js/vendor/angular/angular.js"></script>
-
-
-      <script src="js/vendor/lodash/dist/lodash.min.js"></script>
       <script src="js/angular-sails/ngsails.js"></script>
-      <script src="js/angular-sails/ngsails.resource.js"></script>
 
       <!-- app src -->
-      <script src="js/socketDemo.js"></script>
+      <script src="js/app.js"></script>
   </head>
 
-  <body>
+  <body ng-controller="DemoCtrl">
 <h1>{{ 'hello' }}</h1>
+
+<input type="text" ng-model="newComment.body"/>
+<button ng-click="addComment(newComment)">Submit</button>
 
 
 <ul>
