@@ -1,39 +1,26 @@
-(function () {
+angular.module('sailsDemoApp',['sails.io'])
 
-  var app = angular.module('AngularSailsApp', ['angularSails.base']);
+    .controller('DemoCtrl',function($scope,$sailsSocket){
+        "use strict";
 
-  app.controller('CommentCtrl', ['$scope', '$sails', function ($scope, $sails) {
+        $sailsSocket.get('/comment').success(function(comments){
+            $scope.comments = comments;
+        });
 
-    // Get the comments from the sails server.
-    $scope.comments = $sails('/comment');
 
-    // You can also add a second query paramater to get resources at endpoint that fulfull
-    // the criteria.
-    // $scope.comments = $sails('/comment', {body: 'test'});
+        $scope.addComment  = function(){
 
-    // Adds a comment.
-    $scope.addComment = function (e) {
-      if (e.keyCode !== 13) return;
-      $scope.comments.$add({
-        body: $scope.newComment
-      });
-      $scope.newComment = '';
-    };
+            $sailsSocket.post('/comment',$scope.newComment).success(function(newComment){
 
-    // Remove a comment.
-    $scope.deleteComment = function (comment) {
-      // $scope.comments.$remove(comment);
-      // Now you can also update a comment like this:
-      comment.$remove();
-    };
+                $scope.comments.push(newComment)
 
-    // Update a comment.
-    $scope.updateComment = function (comment) {
-      // $scope.comments.$update(comment);
-      // Now you can also update a comment like this:
-      comment.$update();
-    };
+            });
+        };
 
-  }]);
 
-})();
+        $sailsSocket.subscribe('comment',function(msg){
+
+            console.log(msg);
+            $scope.comments.push(msg.data);
+        })
+    });

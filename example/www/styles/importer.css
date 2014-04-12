@@ -1,0 +1,10 @@
+/**
+ * This file is compiled into CSS by the Gruntfile.
+ * The LESS files you @import below are compiled in the order you specify,
+ * so make sure you @import mixins/variables/etc. first so that subsequent
+ * LESS stylesheets will have access to them.
+ *
+ * (Just like the rest of the asset pipeline bundled in Sails, you can
+ * always omit, customize, or replace this behavior with SASS, SCSS,
+ * or any other Grunt tasks you like.)
+ */
