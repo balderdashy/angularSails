@@ -32,5 +32,8 @@
     "url": "git://github.com/ghernandez345/example.git"
   },
   "author": "ghernandez345",
-  "license": ""
+  "license": "",
+  "devDependencies": {
+    "grunt-ngdocs": "~0.2.1"
+  }
 }

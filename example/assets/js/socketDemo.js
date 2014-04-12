@@ -1,11 +1,33 @@
-angular.module('sailsDemoApp',['sails.io'])
+angular.module('sailsDemoApp',['sails.io','sails.resource'])
 
-.config(function($sailsSocketProvider){
+.config(function(){
         "use strict";
-        console.log($sailsSocketProvider)
+        console.log()
     })
-.run(function($sailsSocket,$rootScope){
+    .factory('Comment',['$sailsResource',function(resource){
+        "use strict";
 
+
+        var CommentModel =  resource('foo');
+        var TestModel =  resource('test');
+
+
+       var model = CommentModel.new('data')
+
+        var model2 = new CommentModel('data')
+        console.log(model)
+        console.log(model2)
+        return CommentModel;
+
+
+
+    }])
+
+
+.run(function($sailsSocket,$rootScope,Comment){
+
+
+        console.log(Comment.find())
         window.sailsSocket = $sailsSocket;
         $sailsSocket.get('/comment').success(function(comments){
             $rootScope.comments = comments;
@@ -19,7 +41,7 @@ angular.module('sailsDemoApp',['sails.io'])
         });
 
         $sailsSocket.post('/comment',{body : 'test'}).success(function(comments){
-            
+
         });
 
         $sailsSocket.subscribe('comment',function(msg){

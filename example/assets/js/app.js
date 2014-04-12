@@ -4,44 +4,12 @@
 
     // Our angular application (module) - it's connected to index.html using the <ng-app="sailsDemoApp">
     // it injects (or "requires") both the sails
-    var app = angular.module('sailsDemoApp', ['sails','sails.io']);
-
-    //the config block
-    app.config(['$sailsProvider',function($sailsProvider){
-
-        console.log('configuring sails demo app...')
-
-//        $sailsProvider.connection({
-//            identity : 'httpTest',
-//            url : 'http://127.0.0.1:1337',
-//            //['http', 'socket']
-//            adapter : '$http'
-//            //prefix : '/api/v2,
-//            //pluralize: false
-//        })
-
-        $sailsProvider.connection({
-            identity : 'socketTest',
-            url : 'http://127.0.0.1:1337',
-            //['http', 'socket']
-            adapter : '$sailsSocket'
-            //prefix : '/api/v2,
-            //pluralize: false
-        })
-
-        $sailsProvider.connection({
-            identity : 'socket2Test',
-            url : 'http://localhost:1338',
-            //['http', 'socket']
-            adapter : '$sailsSocket'
-            //prefix : '/api/v2,
-            //pluralize: false
-        })
+    var app = angular.module('sailsDemoApp', ['sails.io']);
 
 
-    }]);
 
-    app.run(['$sails',function(sails){
+
+    app.run(['$sailsSocket',function(sails){
 
         console.log('running sails demo app...')
         console.log(sails)
