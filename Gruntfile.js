@@ -3,114 +3,148 @@
  */
 module.exports = function(grunt) {
 
-  var getTime = function(){
+    var getTime = function(){
 
-    return new Date().getTime();
+        return new Date().getTime();
 
-  };
+    };
 
-  require('load-grunt-tasks')(grunt);
 
-  grunt.initConfig({
+    require('load-grunt-tasks')(grunt);
 
-    app: {
-      src: 'src',
-      dist: 'dist',
-      tests: 'tests',
-      example: 'example/assets/',
-      pkg: grunt.file.readJSON('bower.json')
-    },
+    grunt.initConfig({
 
-    concat: {
-      dev: {
-        src: [
-          '<%= app.src %>/utils/*.js',
-          '<%= app.src %>/angular-sails-io.js',
-          '<%= app.src %>/angular-sails-base.js'
-        ],
-        dest: '<%= app.dist %>/<%= app.pkg.name %>.js'
-      }
-    },
+        app: {
+            src: 'src',
+            dist: 'dist',
+            vendor: 'vendor',
+            tests: 'tests',
+            example: 'example/assets/',
+            pkg: grunt.file.readJSON('bower.json')
+        },
 
-    copy: {
-      example: {
-        src: '<%= app.dist %>/angularSails.js',
-        dest: '<%= app.example %>/js/deps/angularSails.js',
-      }
-    },
+        ngdocs: {
+            all: ['dist/ngsails.js','dist/ngsails.resource.js']
+        },
 
-    uglify: {
-      options: {
-        sourceMap: true,
-        banner: '/*\n'
-              + '  <%= app.pkg.name %> <%= app.pkg.version %>-build' + getTime() + '\n'
-              + '  Built with <3 by Balderdashy'
-              + '*/'
-      },
-      dist: {
-        files: {
-          '<%= app.dist %>/<%= app.pkg.name %>.min.js': ['<%= app.dist %>/<%= app.pkg.name %>.js']
+
+        concat: {
+
+            sails: {
+                src: [
+
+                    '<%= app.src %>/sailsSocket/**/*.js'
+//          '<%= app.src %>/angular-sails-base.js'
+                ],
+                dest: '<%= app.dist %>/ngsails.js'
+            },
+            resource: {
+                src: [
+                    '<%= app.src %>/sailsResource/resource.js',
+                    '<%= app.src %>/sailsResource/**/*.js'
+                ],
+                dest: '<%= app.dist %>/ngsails.resource.js'
+            }
+//            socket: {
+//                src: [
+//                    '<%= app.src %>/socket/socket.js','<%= app.src %>/socket/utils.js','<%= app.src %>/socket/socketBackend.js'
+//                ],
+//                dest: '<%= app.dist %>/angular-sails-socket.js'
+//            }
+        },
+
+        copy: {
+            example: {
+                src: '<%= app.dist %>/*.js',
+                dest: '<%= app.example %>/js/angular-sails/',
+                flatten : true,
+                expand : true
+            },
+            vendor: {
+                src: ['<%= app.vendor %>/**/*.js','<%= app.vendor %>/**/*.js'],
+                dest: '<%= app.example %>/js/',
+                flatten : true,
+                expand : false
+            }
+        },
+
+        uglify: {
+            options: {
+                sourceMap: true,
+                banner: '/*\n'
+                    + '  <%= app.pkg.name %> <%= app.pkg.version %>-build' + getTime() + '\n'
+                    + '  Built with <3 by Balderdashy'
+                    + '*/'
+            },
+            dist: {
+                files: {
+                    '<%= app.dist %>/<%= app.pkg.name %>.min.js': ['<%= app.dist %>/<%= app.pkg.name %>.js']
+                }
+            }
+        },
+
+        jshint: {
+
+            options: {
+                reporter: require('jshint-stylish'),
+                jshintrc: true
+            },
+
+            all: [
+                '<%= app.src %>/**/*.js',
+                '<%= app.tests %>/**/*.spec.js'
+            ]
+        },
+
+        watch: {
+            source: {
+                files: ['<%= app.src %>/**/*.js'],
+                tasks: ['concat:sails','concat:resource','ngdocs:all','copy:example'],
+                options: {
+                    debounceDelay: 500,
+                    atBegin: true
+                }
+            },
+            tests: {
+                files: ['<%= app.tests %>/**/*.spec.js'],
+                tasks: ['newer:jshint', 'karma:precompile'],
+                options: {
+                    debounceDelay: 500,
+                    atBegin: true
+                }
+            }
+        },
+
+        karma: {
+            precompile: {
+                configFile: 'karma.conf.js'
+            },
+            postcompile: {
+                configFile: 'karma.postcompile.conf.js',
+            }
         }
-      }
-    },
 
-    jshint: {
+    });
 
-      options: {
-        reporter: require('jshint-stylish'),
-        jshintrc: true
-      },
+    grunt.loadNpmTasks('grunt-ngdocs');
+   grunt.loadNpmTasks('grunt-contrib-copy');
 
-      all: [
-        '<%= app.src %>/**/*.js',
-        '<%= app.tests %>/**/*.spec.js'
-      ]
-    },
+    // Registered tasks.
+    grunt.registerTask('default', ['concat:sails','concat:resource']);
 
-    watch: {
-      source: {
-        files: ['<%= app.src %>/**/*.js'],
-        tasks: ['newer:jshint'],
-        options: {
-          debounceDelay: 500,
-          atBegin: true
-        }
-      },
-      tests: {
-        files: ['<%= app.tests %>/**/*.spec.js'],
-        tasks: ['newer:jshint', 'karma:precompile'],
-        options: {
-          debounceDelay: 500,
-          atBegin: true
-        }
-      }
-    },
+    grunt.registerTask('docs', ['ngdocs']);
 
-    karma: {
-      precompile: {
-        configFile: 'karma.conf.js'
-      },
-      postcompile: {
-        configFile: 'karma.postcompile.conf.js',
-      }
-    }
-
-  });
-
-
-  // Registered tasks.
-  grunt.registerTask('default', ['dev']);
-
-  grunt.registerTask('dev', ['watch']);
-
-  grunt.registerTask('test', ['karma:precompile']);
-
-  grunt.registerTask('build', [
-    'jshint',
-    'karma:precompile',
-    'concat',
-    'uglify',
-    'copy',
-    'karma:postcompile'
-  ]);
+//
+//  grunt.registerTask('dev', ['watch']);
+//
+//  grunt.registerTask('test', ['karma:precompile']);
+//
+//  grunt.registerTask('build', [
+////    'jshint',
+////    'karma:precompile',
+////    'concat',
+//    'uglify',
+//    'copy',
+//    'karma:postcompile'
+//  ]);
 };
