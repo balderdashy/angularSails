@@ -1,3 +1,5 @@
+(function ( window, angular ) {
+
 
 /**
  * @ngDoc function
@@ -1322,3 +1324,5 @@ function arrayRemove(array, value) {
     return value;
 }
 
+
+})( window, angular );

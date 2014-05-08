@@ -24,33 +24,15 @@ module.exports = function(grunt) {
         },
 
         ngdocs: {
-            all: ['dist/ngsails.js','dist/ngsails.resource.js']
+            all: ['dist/ngsails.js']
         },
 
-
         concat: {
-
             sails: {
-                src: [
-
-                    '<%= app.src %>/sailsSocket/**/*.js'
-//          '<%= app.src %>/angular-sails-base.js'
-                ],
-                dest: '<%= app.dist %>/ngsails.js'
-            },
-            resource: {
-                src: [
-                    '<%= app.src %>/sailsResource/resource.js',
-                    '<%= app.src %>/sailsResource/**/*.js'
-                ],
-                dest: '<%= app.dist %>/ngsails.resource.js'
+                src: ['module.prefix','<%= app.src %>/*.js','module.suffix'],
+                dest: '<%= app.dist %>/ngsails.io.js'
             }
-//            socket: {
-//                src: [
-//                    '<%= app.src %>/socket/socket.js','<%= app.src %>/socket/utils.js','<%= app.src %>/socket/socketBackend.js'
-//                ],
-//                dest: '<%= app.dist %>/angular-sails-socket.js'
-//            }
+
         },
 
         copy: {
@@ -99,7 +81,7 @@ module.exports = function(grunt) {
         watch: {
             source: {
                 files: ['<%= app.src %>/**/*.js'],
-                tasks: ['concat:sails','concat:resource','ngdocs:all','copy:example'],
+                tasks: ['concat:sails','ngdocs:all','copy:example'],
                 options: {
                     debounceDelay: 500,
                     atBegin: true
