@@ -34,6 +34,7 @@
   "author": "ghernandez345",
   "license": "",
   "devDependencies": {
-    "grunt-ngdocs": "~0.2.1"
+    "grunt-ngdocs": "~0.2.1",
+    "sails-disk": "^0.10.0-rc5"
   }
 }
