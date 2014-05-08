@@ -109,10 +109,10 @@ module.exports = function(grunt) {
     });
 
     grunt.loadNpmTasks('grunt-ngdocs');
-   grunt.loadNpmTasks('grunt-contrib-copy');
+    grunt.loadNpmTasks('grunt-contrib-copy');
 
     // Registered tasks.
-    grunt.registerTask('default', ['concat:sails','concat:resource']);
+    grunt.registerTask('default', ['concat:sails']);
 
     grunt.registerTask('docs', ['ngdocs']);
 
