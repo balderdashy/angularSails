@@ -12,8 +12,11 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       'vendor/angular/angular.js',
+      'js/sails.io.js',
+
       'vendor/angular-mocks/angular-mocks.js',
       'src/**/*.js',
+      'tests/**/mocksocket.js',
       'tests/**/*.spec.js'
     ],
 
@@ -29,8 +32,9 @@ module.exports = function(config) {
 
 
     // enable / disable watching file and executing tests whenever any file changes
-    autoWatch: false,
+    autoWatch: true,
 
+    reporters: ['story'],
 
     // Start these browsers, currently available:
     // - Chrome
@@ -45,6 +49,6 @@ module.exports = function(config) {
 
     // Continuous Integration mode
     // if true, it capture browsers, run tests and exit
-    singleRun: true
+//    singleRun: true
   });
 };

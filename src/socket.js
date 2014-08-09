@@ -769,4 +769,4 @@ function $sailsSocketProvider() {
         }];
 }
 
-angular.module('sails.io', []).provider('$sailsSocket',$sailsSocketProvider).provider('$sailsSocketBackend',sailsBackendProvider);
+angular.module('angularSails.io', []).provider('$sailsSocket',$sailsSocketProvider)

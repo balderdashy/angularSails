@@ -1,32 +1,72 @@
 (function ( window, angular ) {
 
+angular.module('ngsails',[]).provider('$sails',function NgSailsProvider(){
+    this.$inject = ['$http'];
 
-/**
- * @ngDoc function
- * @name angularSails.io.SailsResponse
- *
- * @description
- *
- * Transforms a raw sails response into a $http-like responseObject
- *
- * @param requestContext
- * @param responseContext
- * @constructor
- */
+    this.$get = function NgSails($http){
+        return {
+            foo: '$http'
+        }
+    }
+}).provider('$sailsConfig',function(){
 
-function SailsResponse(requestContext, responseContext) {
+    this.config = {};
 
-    if(angular.isString(responseContext)){
-        responseContext = angular.fromJson(responseContext);
+
+
+    this.$get = function(){
+        return this.config;
+    }
+
+
+})
+
+if(typeof io !== 'undefined' && io.sails){
+    io.sails.autoConnect = false;
+    console.log(io.sails)
+}
+
+angular.module('ngsails.connection',[])
+
+.factory('$sailsConnection',['$http','$injector',function(Http,Injector){
+
+
+}])
+
+angular.module('ngsails.resource',[])
+
+.factory('$sailsResource',['$injector','$q','$timeout','$http','$sailsModel',function($injector,$q,$timeout,sailsSocket,http,sailsModel){
+
+
+    return function(model,controller,config){
+
+
+        return sailsModel.extend(model);
+
+    }
+}]).factory('$sailsModel',[function(){
+
+    function SailsModel(data){
 
     }
 
-    this.data = responseContext.body || {};
-    this.headers = responseContext.headers || {};
-    this.status = responseContext.statusCode || 200;
-    this.config = requestContext;
+    SailsModel.find = function(where){
+        console.log('find!');
+        return [];
+    }
 
-}
+    SailsModel.findOne = function(criteria){}
+
+
+    SailsModel.extend = function(ChildModel){
+        return angular.extend(ChildModel,SailsModel);
+    }
+
+    return SailsModel;
+
+
+}]) 
+
 'use strict';
 
 /* global
@@ -798,7 +838,8 @@ function $sailsSocketProvider() {
         }];
 }
 
-angular.module('sails.io', []).provider('$sailsSocket',$sailsSocketProvider).provider('$sailsSocketBackend',sailsBackendProvider);
+angular.module('sails.io', []).provider('$sailsSocket',$sailsSocketProvider)
+
 'use strict';
 
 function createSailsBackend($browser, $window, $injector, $q, $timeout){
@@ -878,7 +919,7 @@ function sailsBackendProvider() {
     }];
 }
 
-
+angular.module('sails.io').provider('$sailsSocketBackend',sailsBackendProvider);
 
 'use strict';
 // NOTE:  The usage of window and document instead of $window and $document here is
@@ -1323,6 +1364,5 @@ function arrayRemove(array, value) {
         array.splice(index, 1);
     return value;
 }
-
 
 })( window, angular );

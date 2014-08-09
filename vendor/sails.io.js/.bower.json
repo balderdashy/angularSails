@@ -1,0 +1,45 @@
+{
+  "name": "sails.io.js",
+  "main": "dist/sails.io.js",
+  "version": "0.10.3",
+  "homepage": "https://github.com/balderdashy/sails.io.js",
+  "authors": [
+    "Mike McNeil <mike@balderdash.co>"
+  ],
+  "description": "JavaScript Client SDK for Sails",
+  "keywords": [
+    "sails",
+    "socket.io",
+    "sdk",
+    "client",
+    "sockets",
+    "websockets"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "node_modules",
+    "bower_components",
+    "test",
+    "dependencies",
+    "example",
+    "Gruntfile.js",
+    ".*",
+    "bower.json",
+    ".bower.json",
+    "LICENSE",
+    "README.md",
+    "dependencies",
+    "example",
+    "package.json",
+    "tests"
+  ],
+  "_release": "0.10.3",
+  "_resolution": {
+    "type": "version",
+    "tag": "v0.10.3",
+    "commit": "3185556321d181d67cbdb93da0ff5d6e1a2fd123"
+  },
+  "_source": "git://github.com/balderdashy/sails.io.js.git",
+  "_target": "*",
+  "_originalSource": "sails.io.js"
+}

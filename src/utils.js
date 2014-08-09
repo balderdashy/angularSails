@@ -441,4 +441,3 @@ function arrayRemove(array, value) {
         array.splice(index, 1);
     return value;
 }
-

@@ -1,57 +1,63 @@
-(function () {
+//create a new module
+angular.module('sailsDemoApp',['sails.io'])
 
-  var app = angular.module('AngularSailsApp', ['angularSails.base']);
 
-  app.controller('CommentsCtrl', ['$scope', '$sailsRef', function ($scope, $sailsRef) {
+    .factory('Messages',function($sailsSocket){
 
-    // Get the comments from the sails server.
-    $scope.comments = $sailsRef('/comment');
+        var _messages = [];
 
-    // You can also add a second argument that is a query paramater to
-    // get resources at endpoint that fulfulls the criteria.
-    //
-    // $scope.comments = $sails('/comment', {body: 'test'});
+        var _handlers = {};
 
-    // Adds a comment.
-    $scope.addComment = function (e) {
-      if (e.keyCode !== 13) return;
-      $scope.comments.$add({
-        body: $scope.newComment
-      });
-      $scope.newComment = '';
-    };
+        _handlers.created = function(msg){
+            "use strict";
+            _messages.push(msg.data);
+        };
 
-    // Remove a comment.
-    $scope.deleteComment = function (comment) {
-      // $scope.comments.$remove(comment);
-      // Now you can also update a comment like this:
-      comment.$remove();
-    };
+        $sailsSocket.subscribe('message',function(msg){
+            _handlers[msg.verb](msg)
+        });
 
-    // Update a comment.
-    $scope.updateComment = function (comment) {
-      // $scope.comments.$update(comment);
-      // Now you can also update a comment like this:
-      comment.$update();
-    };
+        function _loadMessages(){
+            return $sailsSocket.get('/message').then(function(res){
+                angular.forEach(res.data,function(msg){
+                    _messages.push(msg)
+                });
+                return _messages;
+            })
 
-  }]);
+        }
 
-  app.controller('UserCtrl', ['$scope', '$sailsRef', function ($scope, $sailsRef) {
+        function _sendMessage(msg){
+            return $sailsSocket.post('/message',msg).then(function(res){
+                "use strict";
+                _messages.push(res.data);
+                return res.data;
+            })
+        }
 
-    // Get individual user resource;
-    $scope.user = $sailsRef('/user/5');
 
-    // update model
-    $scope.updateUser = function () {
-      $scope.user.$update();
-    }
+        return {
 
-    // remove model
-    $scope.removeUser = function () {
-      $scope.user.$remove();
-    }
+            load : _loadMessages,
+            send : _sendMessage
+        };
+    })
 
-  }]);
 
-})();
+    .controller('DemoCtrl',function($scope,$sailsSocket,Messages){
+        "use strict";
+
+        $scope.newMessage = {};
+
+        Messages.load().then(function(messages){
+            $scope.messages = messages;
+        });
+
+        $scope.postMessage = function(newMessage){
+            Messages.send(newMessage).then(function(){
+                $scope.newMessage.body = '';
+            })
+
+        }
+
+    });

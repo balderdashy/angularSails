@@ -19,18 +19,18 @@ module.exports = function(grunt) {
             dist: 'dist',
             vendor: 'vendor',
             tests: 'tests',
-            example: 'example/assets/',
+            example: 'example/assets',
             pkg: grunt.file.readJSON('bower.json')
         },
 
         ngdocs: {
-            all: ['dist/ngsails.js']
+            all: ['dist/ngsails.io.js']
         },
 
         concat: {
             sails: {
                 src: ['module.prefix','<%= app.src %>/*.js','module.suffix'],
-                dest: '<%= app.dist %>/ngsails.io.js'
+                dest: '<%= app.dist %>/angularSails.js'
             }
 
         },
@@ -38,7 +38,7 @@ module.exports = function(grunt) {
         copy: {
             example: {
                 src: '<%= app.dist %>/*.js',
-                dest: '<%= app.example %>/js/angular-sails/',
+                dest: '<%= app.example %>/js/',
                 flatten : true,
                 expand : true
             },
@@ -112,7 +112,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-copy');
 
     // Registered tasks.
-    grunt.registerTask('default', ['concat:sails']);
+    grunt.registerTask('default', ['concat:sails','copy:example']);
 
     grunt.registerTask('docs', ['ngdocs']);
 
