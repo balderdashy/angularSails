@@ -16,6 +16,7 @@ module.exports = function(grunt) {
 
         app: {
             src: 'src',
+            lib: 'lib',
             dist: 'dist',
             vendor: 'vendor',
             tests: 'tests',
@@ -24,7 +25,7 @@ module.exports = function(grunt) {
         },
 
         ngdocs: {
-            all: ['dist/ngsails.io.js']
+            all: ['dist/angularSails.js']
         },
 
         concat: {
@@ -33,11 +34,12 @@ module.exports = function(grunt) {
                 dest: '<%= app.dist %>/angularSails.js'
             }
 
+
         },
 
         copy: {
             example: {
-                src: '<%= app.dist %>/*.js',
+                src: ['<%= app.lib %>/*.js','<%= app.dist %>/*.js',],
                 dest: '<%= app.example %>/js/',
                 flatten : true,
                 expand : true

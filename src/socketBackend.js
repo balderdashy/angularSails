@@ -2,22 +2,6 @@
 
 function createSailsBackend($browser, $window, $injector, $q, $timeout){
 
-
-
-
-    if(!$window.io){
-        throw new Error('socket.io client not found')
-    }
-
-    if(!$window.io.sails){
-        throw new Error('sails.io client not found')
-    }
-
-    if(!$window.io.socket){
-        console.warn('no connected socket...')
-    }
-
-
     var tick = function (socket, callback) {
         return callback ? function () {
             var args = arguments;
@@ -48,6 +32,11 @@ function createSailsBackend($browser, $window, $injector, $q, $timeout){
 
     //TODO normalize http paths to event names
     connection.subscribe = function(event,handler){
+        console.warn('$sailsSocket.subscribe is deprecated, use .on instead')
+        $window.io.socket.on(event,tick($window.io.socket,handler));
+    }
+
+    connection.on = function(event,handler){
         $window.io.socket.on(event,tick($window.io.socket,handler));
     }
 
