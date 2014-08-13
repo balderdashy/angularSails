@@ -23,6 +23,17 @@ function createMockSocketObject () {
         }.bind(this));
       }
     },
+
+    send: function (ev, data) {
+      if (this._listeners[ev]) {
+        this._listeners[ev].forEach(function (listener) {
+          if (listener._once) {
+            this.removeListener(ev, listener);
+          }
+          listener(data);
+        }.bind(this));
+      }
+    },
     _listeners: {},
     removeListener: function (ev, fn) {
       if (fn) {

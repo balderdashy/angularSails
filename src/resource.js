@@ -99,10 +99,10 @@ angular.module('angularSails.resource', ['ng']).
         'create': {method: 'POST'},
         'destroy': {method: 'DELETE'},
         'stream': {method: 'GET'}
-      }
+    },
     };
 
-    this.$get = ['$http', '$q', '$cacheFactory',function ($http, $q, $cacheFactory) {
+    this.$get = ['$http', '$q', '$cacheFactory','$injector',function ($http, $q, $cacheFactory,$injector) {
 
       var noop = angular.noop,
         forEach = angular.forEach,
@@ -248,9 +248,28 @@ angular.module('angularSails.resource', ['ng']).
           return response.resource;
         }
 
+
+
+        /**
+         * SailsResource
+         */
+
         function SailsResource(value) {
           shallowClearAndCopy(value || {}, this);
         }
+
+
+        /**
+         * Finds and returns all records that meet the criteria object(s) that you pass it.
+         *
+         * @param  {Object} where find criteria
+         * @return {[type]}       [description]
+         */
+        SailsResource.find = function(where){
+
+        }
+
+
 
         SailsResource.prototype.toJSON = function () {
           var data = extend({}, this);
@@ -260,128 +279,93 @@ angular.module('angularSails.resource', ['ng']).
         };
 
 
-        forEach(actions, function (action, name) {
-          var hasBody = /^(POST|PUT|PATCH)$/i.test(action.method);
 
-          SailsResource[name] = function (a1, a2, a3, a4) {
-            var params = {}, data;
-
-            if(!hasBody){
-                params = a1;
-            }
-
-            else{
-                data = a1;
-            }
-
-            // /* jshint -W086 */ /* (purposefully fall through case statements) */
-            // switch (arguments.length) {
-            //   case 4:
-            //     error = a4;
-            //     success = a3;
-            //   //fallthrough
-            //   case 3:
-            //   case 2:
-            //     if (isFunction(a2)) {
-            //       if (isFunction(a1)) {
-            //         success = a1;
-            //         error = a2;
-            //         break;
-            //       }
-            //
-            //       success = a2;
-            //       error = a3;
-            //       //fallthrough
-            //     } else {
-            //       params = a1;
-            //       data = a2;
-            //       success = a3;
-            //       break;
-            //     }
-            //   case 1:
-            //     if (isFunction(a1)) success = a1;
-            //     else if (hasBody) data = a1;
-            //     else params = a1;
-            //     break;
-            //   case 0: break;
-            //   default:
-            //     throw $sailsResourceMinErr('badargs',
-            //       "Expected up to 4 arguments [params, data, success, error], got {0} arguments",
-            //       arguments.length);
-            // }
-            /* jshint +W086 */ /* (purposefully fall through case statements) */
-
-            var isInstanceCall = this instanceof SailsResource;
-            var value = isInstanceCall ? data : (action.isArray ? [] : new SailsResource(data));
-            var httpConfig = {};
-            var responseInterceptor = action.interceptor && action.interceptor.response ||
-              defaultResponseInterceptor;
-            var responseErrorInterceptor = action.interceptor && action.interceptor.responseError ||
-              undefined;
-
-            forEach(action, function (value, key) {
-              if (key != 'params' && key != 'isArray' && key != 'interceptor') {
-                httpConfig[key] = copy(value);
-              }
-            });
-
-            if (hasBody) httpConfig.data = data;
-            route.setUrlParams(httpConfig,
-              extend({}, extractParams(data, action.params || {}), params),
-              action.url);
-
-            var request = $http(httpConfig).then(function (response) {
-              var data = response.data;
-
-
-              if (data) {
-                // Need to convert action.isArray to boolean in case it is undefined
-                // jshint -W018
-                if (angular.isArray(data) !== (!!action.isArray)) {
-                  throw $sailsResourceMinErr('badcfg',
-                      'Error in resource configuration. Expected ' +
-                      'response to contain an {0} but got an {1}',
-                    action.isArray ? 'array' : 'object',
-                    angular.isArray(data) ? 'array' : 'object');
-                }
-                // jshint +W018
-                if (action.isArray) {
-                  value.length = 0;
-                  forEach(data, function (item) {
-                    if (typeof item === "object") {
-                      value.push(new SailsResource(item));
-                    } else {
-                      // Valid JSON values may be string literals, and these should not be converted
-                      // into objects. These items will not have access to the Resource prototype
-                      // methods, but unfortunately there
-                      value.push(item);
-                    }
-                  });
-                } else {
-                  shallowClearAndCopy(data, value);
-
-                }
-
-                return value;
-              }
-
-
-
-            }, function (response) {
-
-
-              (error || noop)(response);
-
-              return $q.reject(response);
-            });
-
-            return request;
-
-          };
-
-
-
-        });
+        // forEach(actions, function (action, name) {
+        //   var hasBody = /^(POST|PUT|PATCH)$/i.test(action.method);
+        //
+        //   SailsResource[name] = function (a1, a2, a3, a4) {
+        //     var params = {}, data;
+        //
+        //     if(!hasBody){
+        //         params = a1;
+        //     }
+        //
+        //     else{
+        //         data = a1;
+        //     }
+        //
+        //
+        //     var isInstanceCall = this instanceof SailsResource;
+        //     var value = isInstanceCall ? data : (action.isArray ? [] : new SailsResource(data));
+        //     var httpConfig = {};
+        //     var responseInterceptor = action.interceptor && action.interceptor.response ||
+        //       defaultResponseInterceptor;
+        //     var responseErrorInterceptor = action.interceptor && action.interceptor.responseError ||
+        //       undefined;
+        //
+        //     forEach(action, function (value, key) {
+        //       if (key != 'params' && key != 'isArray' && key != 'interceptor') {
+        //         httpConfig[key] = copy(value);
+        //       }
+        //     });
+        //
+        //     if (hasBody) httpConfig.data = data;
+        //     route.setUrlParams(httpConfig,
+        //       extend({}, extractParams(data, action.params || {}), params),
+        //       action.url);
+        //
+        //     var request = $http(httpConfig).then(function (response) {
+        //       var data = response.data;
+        //
+        //
+        //       if (data) {
+        //         // Need to convert action.isArray to boolean in case it is undefined
+        //         // jshint -W018
+        //         if (angular.isArray(data) !== (!!action.isArray)) {
+        //           throw $sailsResourceMinErr('badcfg',
+        //               'Error in resource configuration. Expected ' +
+        //               'response to contain an {0} but got an {1}',
+        //             action.isArray ? 'array' : 'object',
+        //             angular.isArray(data) ? 'array' : 'object');
+        //         }
+        //         // jshint +W018
+        //         if (action.isArray) {
+        //           value.length = 0;
+        //           forEach(data, function (item) {
+        //             if (typeof item === "object") {
+        //               value.push(new SailsResource(item));
+        //             } else {
+        //               // Valid JSON values may be string literals, and these should not be converted
+        //               // into objects. These items will not have access to the Resource prototype
+        //               // methods, but unfortunately there
+        //               value.push(item);
+        //             }
+        //           });
+        //         } else {
+        //           shallowClearAndCopy(data, value);
+        //
+        //         }
+        //
+        //         return value;
+        //       }
+        //
+        //
+        //
+        //     }, function (response) {
+        //
+        //
+        //       (error || noop)(response);
+        //
+        //       return $q.reject(response);
+        //     });
+        //
+        //     return request;
+        //
+        //   };
+        //
+        //
+        //
+        // });
 
 
         SailsResource.prototype.destroy = function () {

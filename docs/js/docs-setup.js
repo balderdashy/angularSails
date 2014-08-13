@@ -5,6 +5,23 @@ NG_DOCS={
   "pages": [
     {
       "section": "api",
+      "id": "$sailsResource\n\n\n# angularSails.resource\n\nThe `angularSails.resource` module provides a client-side model layer for use with a SailsJS API.",
+      "name": "$sailsResource\n\n\n# angularSails.resource\n\nThe `angularSails.resource` module provides a client-side model layer for use with a SailsJS API.",
+      "shortName": "$sailsResource\n\n\n# angularSails.resource\n\nThe `angularSails.resource` module provides a client-side model layer for use with a SailsJS API.",
+      "type": "service",
+      "keywords": "$sailsresource angularsails api client-side layer model module resource sailsjs service"
+    },
+    {
+      "section": "api",
+      "id": "angularSails.resource",
+      "shortName": "angularSails.resource",
+      "type": "overview",
+      "moduleName": "angularSails.resource",
+      "shortDescription": "ngResource",
+      "keywords": "$resource angularsails api interaction module ngresource overview resource restful service services support"
+    },
+    {
+      "section": "api",
       "id": "ngsails",
       "shortName": "ngsails",
       "type": "overview",
