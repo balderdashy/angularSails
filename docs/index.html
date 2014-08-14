@@ -11,14 +11,14 @@
                  Declarative templates with data-binding, MVC, dependency injection and great
                  testability story all implemented with pure client-side JavaScript!">
   <meta name="fragment" content="!">
-  <title ng-bind-template="Doc: {{partialTitle}}">Docs</title>
+  <title ng-bind-template="angularSails 0.10.1: {{partialTitle}}">Docs</title>
   <script type="text/javascript">
     // dynamically add base tag as well as css and javascript files.
     // we can't add css/js the usual way, because some browsers (FF) eagerly prefetch resources
     // before the base attribute is added, causing 404 and terribly slow loading of the docs app.
     (function() {
       var indexFile = (location.pathname.match(/\/(index[^\.]*\.html)/) || ['', ''])[1],
-          rUrl = /(#!\/|api|index[^\.]*\.html).*$/,
+          rUrl = /(#!\/|tutorial|api|index[^\.]*\.html).*$/,
           baseUrl = location.href.replace(rUrl, indexFile),
           headEl = document.getElementsByTagName('head')[0],
           sync = true;
@@ -68,32 +68,49 @@
       }
     })();
 
+    // GA asynchronous tracker
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-53843607-2']);
+    _gaq.push(['_setDomainName', 'ngsails.herokuapp.com']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+
   </script>
 </head>
 
 <body>
-  <header class="header">
-    <div class="navbar navbar-fixed-top">
-      <div class="navbar-inner">
-        <div class="container">
+  <nav class="navbar navbar-default" role="navigation">
+    <div class="container">
+     <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapse-1">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
           
           
-          <ul class="nav">
-            <li ng-repeat="(url, name) in sections" ng-class="{active: isActivePath(url)}">
-              <a ng-href="{{url}}"><i class="icon-book icon-white"></i> {{name}}</a>
-            </li>
-          </ul>
+            <a class="navbar-brand"  href="/api"  class="brand">angularSails 0.10.1</a>
           
-        </div>
-      </div>
     </div>
-  </header>
+      <ul class="nav navbar-nav navbar-right">
+        <li ng-repeat="(url, name) in sections" ng-class="{active: isActivePath(url)}">
+          <a ng-href="{{url}}"><i class="icon-book icon-white"></i> {{name}}</a>
+        </li>
+      </ul>
+      
+    </div>
+  </nav>
 
   <div role="main" class="container">
-    <div class="row clear-navbar"></div>
+    <!-- <div class="row clear-navbar"></div> -->
 
     <div class="row">
-      <div class="span12">
+      <div class="col-md-12">
         <!--[if lt IE 7]>
         <p class="alert alert-error">Your browser is <em>ancient!</em>
           <a href="http://browsehappy.com/">Upgrade to a different browser</a> or
@@ -114,11 +131,19 @@
     </div>
 
     <div class="row">
-      <div class="span3">
+      <div class="col-md-3">
         <form class="form-search" ng-submit="submitForm()">
           
-          <input type="text" ng-model="search" placeholder="search the docs"
-                 tabindex="1" accesskey="s" class="search-query">
+          <div class="dropdown search"
+               ng-class="{open: focused && bestMatch.rank > 0 && bestMatch.page != currentPage}">
+            <input type="text" ng-model="search" placeholder="search the docs"
+                   tabindex="1" accesskey="s" class="search-query" focused="focused">
+            <ul class="dropdown-menu">
+              <li>
+                <a href="{{bestMatch.page.url}}">{{bestMatch.page.shortName}}</a>
+              </li>
+            </ul>
+          </div>
           
           <div class="spacer"></div>
 
@@ -186,7 +211,7 @@
 
         </form>
       </div>
-      <div class="span9">
+      <div class="col-md-9">
 
         <ul class="breadcrumb">
           <li ng-repeat="crumb in breadcrumb">

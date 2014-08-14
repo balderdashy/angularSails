@@ -1,6 +1,6 @@
 /**
- * Grunt automation.
- */
+* Grunt automation.
+*/
 module.exports = function(grunt) {
 
     var getTime = function(){
@@ -25,7 +25,30 @@ module.exports = function(grunt) {
         },
 
         ngdocs: {
-            all: ['dist/angularSails.js']
+            options: {
+                dest: 'docs',
+                //scripts: ['../.min.js'],
+                html5Mode: false,
+                startPage: '/api',
+                title: "angularSails 0.10.1",
+            //    image: "assets/images/angularSailsLogoSmall.png",
+            //    navTemplate: "assets/templates/navTemplate.html",
+                imageLink: "/api",
+                titleLink: "/api",
+                bestMatch: true,
+                analytics: {
+                    account: 'UA-53843607-2',
+                    domainName: 'ngsails.herokuapp.com'
+                }
+            },
+            tutorial: {
+                src: ['content/tutorial/*.ngdoc'],
+                title: 'Tutorial'
+            },
+            api: {
+                src: ['dist/angularSails.js'],
+                title: 'API Documentation'
+            }
         },
 
         concat: {
@@ -56,9 +79,9 @@ module.exports = function(grunt) {
             options: {
                 sourceMap: true,
                 banner: '/*\n'
-                    + '  <%= app.pkg.name %> <%= app.pkg.version %>-build' + getTime() + '\n'
-                    + '  Built with <3 by Balderdashy'
-                    + '*/'
+                + '  <%= app.pkg.name %> <%= app.pkg.version %>-build' + getTime() + '\n'
+                + '  Built with <3 by Balderdashy'
+                + '*/'
             },
             dist: {
                 files: {
@@ -75,8 +98,8 @@ module.exports = function(grunt) {
             },
 
             all: [
-                '<%= app.src %>/**/*.js',
-                '<%= app.tests %>/**/*.spec.js'
+            '<%= app.src %>/**/*.js',
+            '<%= app.tests %>/**/*.spec.js'
             ]
         },
 
@@ -111,19 +134,19 @@ module.exports = function(grunt) {
         ngAnnotate: {
             options: {
                 add: true
-            // Task-specific options go here.
+                // Task-specific options go here.
             },
             src: {
                 files: [{
                     src: ['<%= app.src %>/**/*.js'],
                 }]
-            // Target-specific file lists and/or options go here.
+                // Target-specific file lists and/or options go here.
             }
-    },
+        },
 
     });
 
-    grunt.loadNpmTasks('grunt-ngdocs');
+    grunt.loadNpmTasks('grunt-ngdocs-bs3');
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-ng-annotate');
 
@@ -132,17 +155,17 @@ module.exports = function(grunt) {
 
     grunt.registerTask('docs', ['ngdocs']);
 
-//
-//  grunt.registerTask('dev', ['watch']);
-//
-  grunt.registerTask('test', ['karma:precompile']);
-//
- grunt.registerTask('build', [
-//    'jshint',
+    //
+    //  grunt.registerTask('dev', ['watch']);
+    //
+    grunt.registerTask('test', ['karma:precompile']);
+    //
+    grunt.registerTask('build', [
+    //    'jshint',
     'karma:precompile',
     'concat:sails',
-   'uglify',
-   'copy',
-   'karma:postcompile'
- ]);
+    'uglify',
+    'copy',
+    'karma:postcompile'
+    ]);
 };

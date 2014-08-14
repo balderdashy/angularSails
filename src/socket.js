@@ -8,8 +8,8 @@
 
 /**
  * @ngdoc overview
- * @module angularSails.io
- * @name angularSails.io
+ * @module ngsails
+ * @name ngsails
  *
  * @description foobar
  *
@@ -17,18 +17,7 @@
 
 
 
-angular.module('angularSails.io',['angularSails.connection','angularSails.backend'])
-
-.factory('$sailsIO',function(){
-
-
-
-    return {
-        connect: _connect
-    }
-})
-
-.provider('$sailsSocket',function $sailsSocketProvider() {
+function $sailsSocketProvider() {
 
     'use strict';
     // NOTE:  The usage of window and document instead of $window and $document here is
@@ -40,34 +29,6 @@ angular.module('angularSails.io',['angularSails.connection','angularSails.backen
     // service.
     var urlParsingNode = document.createElement("a");
     var originUrl = urlResolve(window.location.href, true);
-
-    function forEach(obj, iterator, context) {
-        var key;
-        if (obj) {
-            if (isFunction(obj)){
-                for (key in obj) {
-                    // Need to check if hasOwnProperty exists,
-                    // as on IE8 the result of querySelectorAll is an object without a hasOwnProperty function
-                    if (key != 'prototype' && key != 'length' && key != 'name' && (!obj.hasOwnProperty || obj.hasOwnProperty(key))) {
-                        iterator.call(context, obj[key], key);
-                    }
-                }
-            } else if (obj.forEach && obj.forEach !== forEach) {
-                obj.forEach(iterator, context);
-            } else if (isArrayLike(obj)) {
-                for (key = 0; key < obj.length; key++)
-                    iterator.call(context, obj[key], key);
-            } else {
-                for (key in obj) {
-                    if (obj.hasOwnProperty(key)) {
-                        iterator.call(context, obj[key], key);
-                    }
-                }
-            }
-        }
-        return obj;
-    }
-
 
     /**
      * Chain all given functions
@@ -280,6 +241,32 @@ angular.module('angularSails.io',['angularSails.connection','angularSails.backen
         return val;
     }
 
+    function forEach(obj, iterator, context) {
+        var key;
+        if (obj) {
+            if (isFunction(obj)){
+                for (key in obj) {
+                    // Need to check if hasOwnProperty exists,
+                    // as on IE8 the result of querySelectorAll is an object without a hasOwnProperty function
+                    if (key != 'prototype' && key != 'length' && key != 'name' && (!obj.hasOwnProperty || obj.hasOwnProperty(key))) {
+                        iterator.call(context, obj[key], key);
+                    }
+                }
+            } else if (obj.forEach && obj.forEach !== forEach) {
+                obj.forEach(iterator, context);
+            } else if (isArrayLike(obj)) {
+                for (key = 0; key < obj.length; key++)
+                    iterator.call(context, obj[key], key);
+            } else {
+                for (key in obj) {
+                    if (obj.hasOwnProperty(key)) {
+                        iterator.call(context, obj[key], key);
+                    }
+                }
+            }
+        }
+        return obj;
+    }
 
     function sortedKeys(obj) {
         var keys = [];
@@ -602,7 +589,7 @@ angular.module('angularSails.io',['angularSails.connection','angularSails.backen
             /**
              * @ngdoc service
              * @kind function
-             * @name angularSails.io.$sailsSocket
+             * @name ngsails.$sailsSocket
              *
              * @requires $cacheFactory
              * @requires $rootScope
@@ -1266,4 +1253,6 @@ angular.module('angularSails.io',['angularSails.connection','angularSails.backen
 
 
         }];
-});
+}
+
+angular.module('angularSails.io',['angularSails.connection','angularSails.backend']).provider('$sailsSocket',$sailsSocketProvider)

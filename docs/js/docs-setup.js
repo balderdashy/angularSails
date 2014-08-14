@@ -1,5 +1,6 @@
 NG_DOCS={
   "sections": {
+    "tutorial": "Tutorial",
     "api": "API Documentation"
   },
   "pages": [
@@ -10,6 +11,15 @@ NG_DOCS={
       "shortName": "$sailsResource\n\n\n# angularSails.resource\n\nThe `angularSails.resource` module provides a client-side model layer for use with a SailsJS API.",
       "type": "service",
       "keywords": "$sailsresource angularsails api client-side layer model module resource sailsjs service"
+    },
+    {
+      "section": "api",
+      "id": "angularSails",
+      "shortName": "angularSails",
+      "type": "overview",
+      "moduleName": "angularSails",
+      "shortDescription": "angularSails v0.10.0",
+      "keywords": "angularsails api overview v0"
     },
     {
       "section": "api",
@@ -49,9 +59,10 @@ NG_DOCS={
     }
   ],
   "apis": {
+    "tutorial": false,
     "api": true
   },
-  "html5Mode": true,
+  "html5Mode": false,
   "startPage": "/api",
   "scripts": [
     "angular.min.js"
