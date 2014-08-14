@@ -68,4 +68,4 @@ function sailsBackendProvider() {
     }];
 }
 
-angular.module('angularSails.io').provider('$sailsBackend',sailsBackendProvider);
+angular.module('angularSails.backend',[]).provider('$sailsBackend',sailsBackendProvider);

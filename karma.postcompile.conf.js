@@ -4,7 +4,7 @@
 module.exports = function(config) {
   config.set({
     // base path, that will be used to resolve files and exclude
-    basePath: '',
+    basePath: './',
 
     // testing framework to use (jasmine/mocha/qunit/...)
     frameworks: ['jasmine'],
@@ -12,10 +12,17 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       'vendor/angular/angular.js',
+
       'vendor/angular-mocks/angular-mocks.js',
-      'dist/angularSails.min.js', //first, load non-root modules so that root has it's dependencies
-      'tests/**/*.spec.js'
+      'tests/mocks/mockSailsConnectionBackend.js',
+      'tests/helpers/matchers.js',
+      {pattern: 'lib/**/*.js', watched: true, included: true, served: true},
+
+      'dist/angularSails.js',
+      'tests/**/*.spec.js',
+
     ],
+
 
     // list of files / patterns to exclude
     exclude: [],

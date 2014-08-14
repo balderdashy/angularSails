@@ -152,6 +152,7 @@ function urlResolve(url, base) {
     };
 }
 
+var toString          = Object.prototype.toString;
 /**
  * Parse a request URL and determine whether this is a same-origin request as the application document.
  *
@@ -315,6 +316,8 @@ function isFunction(value){return typeof value === 'function';}
 function isScope(obj) {
     return obj && obj.$evalAsync && obj.$watch;
 }
+
+
 function isFile(obj) {
     return toString.call(obj) === '[object File]';
 }
@@ -332,6 +335,7 @@ function isBoolean(value) {
 function isArray(value) {
     return toString.call(value) === '[object Array]';
 }
+
 
 
 /**

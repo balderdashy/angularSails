@@ -30,7 +30,7 @@ module.exports = function(grunt) {
 
         concat: {
             sails: {
-                src: ['module.prefix','<%= app.src %>/*.js','module.suffix'],
+                src: ['<%= app.src %>/*.js'],
                 dest: '<%= app.dist %>/angularSails.js'
             }
 
@@ -128,7 +128,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-ng-annotate');
 
     // Registered tasks.
-    grunt.registerTask('default', ['ngAnnotate:src','concat:sails','copy:example']);
+    grunt.registerTask('default', ['concat:sails','copy:example']);
 
     grunt.registerTask('docs', ['ngdocs']);
 

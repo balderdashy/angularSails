@@ -1,9 +1,4 @@
-(function(){
-    var angularSails = angular.module('angularSails',['angularSails.config','angularSails.context','angularSails.connection','angularSails.resource','angularSails.io'],['$provide',function($provide){
-
-        angularSails.$provide = $provide;
-
-    }]).provider('$sails',function NgSailsProvider(){
+angular.module('angularSails',['angularSails.config','angularSails.connection','angularSails.resource','angularSails.io','angularSails.backend']).provider('$sails',function NgSailsProvider(){
 
         function NgSails($sailsResource){
             var sails = this;
@@ -30,13 +25,4 @@
         }
         return NgSails;
 
-    }).run(['$sails',function($sails){
-
-    }]);
-
-    if(typeof io !== 'undefined' && io.sails){
-        io.sails.autoConnect = false;
-    }
-
-
-})(window.io);
+})
