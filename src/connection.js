@@ -17,7 +17,7 @@ angular.module('angularSails.connection', ['angularSails.config'])
 
     var _connectionCache = {};
 
-    this.$get = function($http,$injector){
+    this.$get = ["$http", "$injector", function($http,$injector){
 
         return function sailsConnectionFactory(options){
 
@@ -29,7 +29,7 @@ angular.module('angularSails.connection', ['angularSails.config'])
 
         }
 
-    }
+    }]
 
 })
 
@@ -43,7 +43,7 @@ angular.module('angularSails.connection', ['angularSails.config'])
       ioSocket;
 
     // expose to provider
-    this.$get = function ($rootScope, $timeout, $SailsSDKConfig) {
+    this.$get = ["$rootScope", "$timeout", "$SailsSDKConfig", function ($rootScope, $timeout, $SailsSDKConfig) {
 
         console.log($SailsSDKConfig.versionString)
 
@@ -127,5 +127,5 @@ angular.module('angularSails.connection', ['angularSails.config'])
 
         return wrappedSocket;
       };
-    };
+    }];
   });

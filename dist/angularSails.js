@@ -1,7 +1,7 @@
 (function ( window, angular ) {
 
 (function(){
-    var angularSails = angular.module('angularSails',['angularSails.context','angularSails.connection','angularSails.resource','angularSails.io'],['$provide',function($provide){
+    var angularSails = angular.module('angularSails',['angularSails.config','angularSails.context','angularSails.connection','angularSails.resource','angularSails.io'],['$provide',function($provide){
 
         angularSails.$provide = $provide;
 
@@ -86,19 +86,19 @@ angular.module('angularSails.connection', ['angularSails.config'])
 
     var _connectionCache = {};
 
-
-
-
-
-    this.$get = function($http,$injector,$sailsSocketFactory){
+    this.$get = ["$http", "$injector", function($http,$injector){
 
         return function sailsConnectionFactory(options){
 
-            return $sailsSocketFactory(options || {});
+            if(options.useXHR){
+                return $http;
+            }
+
+            return $injector.get('$sailsSocket');
 
         }
 
-    }
+    }]
 
 })
 
@@ -112,7 +112,7 @@ angular.module('angularSails.connection', ['angularSails.config'])
       ioSocket;
 
     // expose to provider
-    this.$get = function ($rootScope, $timeout, $SailsSDKConfig) {
+    this.$get = ["$rootScope", "$timeout", "$SailsSDKConfig", function ($rootScope, $timeout, $SailsSDKConfig) {
 
         console.log($SailsSDKConfig.versionString)
 
@@ -127,7 +127,7 @@ angular.module('angularSails.connection', ['angularSails.config'])
 
       return function socketFactory (options) {
         options = options || {};
-        var socket = options.ioSocket || io.connect('/',{query : $SailsSDKConfig.versionString });
+        var socket = options.ioSocket || io.connect(options.url || '/',{ query : $SailsSDKConfig.versionString });
         var prefix = options.prefix || defaultPrefix;
         var defaultScope = options.scope || $rootScope;
 
@@ -196,7 +196,7 @@ angular.module('angularSails.connection', ['angularSails.config'])
 
         return wrappedSocket;
       };
-    };
+    }];
   });
 
 /*
@@ -702,9 +702,9 @@ function $sailsSocketProvider() {
             common: {
                 'Accept': 'application/json, text/plain, */*'
             },
-            post:   angular.copy(CONTENT_TYPE_APPLICATION_JSON),
-            put:    angular.copy(CONTENT_TYPE_APPLICATION_JSON),
-            patch:  angular.copy(CONTENT_TYPE_APPLICATION_JSON)
+            post:   shallowCopy(CONTENT_TYPE_APPLICATION_JSON),
+            put:    shallowCopy(CONTENT_TYPE_APPLICATION_JSON),
+            patch:  shallowCopy(CONTENT_TYPE_APPLICATION_JSON)
         },
 
         xsrfCookieName: 'XSRF-TOKEN',
@@ -723,7 +723,7 @@ function $sailsSocketProvider() {
      */
     var responseInterceptorFactories = this.responseInterceptors = [];
 
-    this.$get = ['$sailsSocketBackend', '$browser', '$cacheFactory', '$rootScope', '$q', '$injector',
+    this.$get = ['$sailsBackend', '$browser', '$cacheFactory', '$rootScope', '$q', '$injector',
         function($sailsSocketBackend, $browser, $cacheFactory, $rootScope, $q, $injector) {
 
             var defaultCache = $cacheFactory('$sailsSocket');
@@ -1051,7 +1051,7 @@ function $sailsSocketProvider() {
                     var reqData = transformData(config.data, headersGetter(headers), config.transformRequest);
 
                     // strip content-type if data is undefined
-                    if (isUndefined(config.data)) {
+                    if (isUndefined(reqData)) {
                         forEach(headers, function(value, header) {
                             if (lowercase(header) === 'content-type') {
                                 delete headers[header];
@@ -1255,7 +1255,7 @@ function $sailsSocketProvider() {
              * @returns {HttpPromise} Future object
              */
 
-            $sailsSocket.subscribe = $sailsSocketBackend.subscribe;
+            $sailsSocket.on = $sailsSocketBackend.subscribe;
 
 
 
@@ -1320,10 +1320,10 @@ function $sailsSocketProvider() {
                 promise.then(removePendingReq, removePendingReq);
 
 
-                if ((config.cache || defaults.cache) && config.cache !== false && config.method == 'GET') {
+                if ((config.cache || defaults.cache) && config.cache !== false && (config.method === 'GET' || config.method === 'JSONP')) {
                     cache = isObject(config.cache) ? config.cache
-                        : isObject(defaults.cache) ? defaults.cache
-                        : defaultCache;
+                    : isObject(defaults.cache) ? defaults.cache
+                    : defaultCache;
                 }
 
                 if (cache) {
@@ -1336,7 +1336,7 @@ function $sailsSocketProvider() {
                         } else {
                             // serving from cache
                             if (isArray(cachedResp)) {
-                                resolvePromise(cachedResp[1], cachedResp[0], angular.copy(cachedResp[2]), cachedResp[3]);
+                                resolvePromise(cachedResp[1], cachedResp[0], shallowCopy(cachedResp[2]), cachedResp[3]);
                             } else {
                                 resolvePromise(cachedResp, 200, {}, 'OK');
                             }
@@ -1410,10 +1410,14 @@ function $sailsSocketProvider() {
 
                     angular.forEach(value, function(v) {
                         if (isObject(v)) {
-                            v = toJson(v);
+                            if (isDate(v)){
+                                v = v.toISOString();
+                            } else if (isObject(v)) {
+                                v = toJson(v);
+                            }
                         }
                         parts.push(encodeUriQuery(key) + '=' +
-                            encodeUriQuery(v));
+                         encodeUriQuery(v));
                     });
                 });
                 if(parts.length > 0) {
@@ -1426,11 +1430,11 @@ function $sailsSocketProvider() {
         }];
 }
 
-angular.module('angularSails.io',[]).provider('$sailsSocket',$sailsSocketProvider)
+angular.module('angularSails.io',['angularSails.connection']).provider('$sailsSocket',$sailsSocketProvider)
 
 'use strict';
 
-function createSailsBackend($browser, $window, $injector, $q, $timeout,$httpBackend){
+function createSailsBackend($sailsSocketFactory,$browser, $window, $injector, $q, $timeout,$httpBackend){
 
     var tick = function (socket, callback) {
         return callback ? function () {
@@ -1441,6 +1445,8 @@ function createSailsBackend($browser, $window, $injector, $q, $timeout,$httpBack
         } : angular.noop;
     };
 
+
+    var socket = $sailsSocketFactory();
 
     function connection(method, url, post, callback, headers, timeout, withCredentials, responseType){
 
@@ -1456,7 +1462,7 @@ function createSailsBackend($browser, $window, $injector, $q, $timeout,$httpBack
         url = url || $browser.url();
 
 
-        $window.io.socket[method.toLowerCase()](url,fromJson(post),socketResponse);
+        socket.emit(method.toLowerCase(),{ url: url, data: fromJson(post) },socketResponse);
 
     }
 
@@ -1491,12 +1497,12 @@ function createSailsBackend($browser, $window, $injector, $q, $timeout,$httpBack
  *  which can be trained with responses.
  */
 function sailsBackendProvider() {
-    this.$get = ['$browser', '$window','$injector', '$q','$timeout', function($browser, $window, $injector, $q,$timeout) {
-        return createSailsBackend($browser,$window, $injector, $q,$timeout);
+    this.$get = ['$sailsSocketFactory','$browser', '$window','$injector', '$q','$timeout', function($sailsSocketFactory,$browser, $window, $injector, $q,$timeout) {
+        return createSailsBackend($sailsSocketFactory,$browser,$window, $injector, $q,$timeout);
     }];
 }
 
-angular.module('angularSails.io').provider('$sailsSocketBackend',sailsBackendProvider);
+angular.module('angularSails.io').provider('$sailsBackend',sailsBackendProvider);
 
 
 'use strict';
@@ -1529,6 +1535,26 @@ function transformData(data, headers, fns) {
     });
 
     return data;
+}
+
+function shallowCopy(src, dst) {
+  if (isArray(src)) {
+    dst = dst || [];
+
+    for ( var i = 0; i < src.length; i++) {
+      dst[i] = src[i];
+    }
+  } else if (isObject(src)) {
+    dst = dst || {};
+
+    for (var key in src) {
+      if (hasOwnProperty.call(src, key) && !(key.charAt(0) === '$' && key.charAt(1) === '$')) {
+        dst[key] = src[key];
+      }
+    }
+  }
+
+  return dst || src;
 }
 
 
@@ -1589,6 +1615,22 @@ function headersGetter(headers) {
         return headersObj;
     };
 }
+
+
+
+var trim = (function() {
+  // native trim is way faster: http://jsperf.com/angular-trim-test
+  // but IE doesn't have it... :-(
+  // TODO: we should move this into IE/ES5 polyfill
+  if (!String.prototype.trim) {
+    return function(value) {
+      return isString(value) ? value.replace(/^\s\s*/, '').replace(/\s\s*$/, '') : value;
+    };
+  }
+  return function(value) {
+    return isString(value) ? value.trim() : value;
+  };
+})();
 
 function urlResolve(url, base) {
     var href = url;

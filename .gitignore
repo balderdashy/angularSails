@@ -3,5 +3,3 @@ node_modules
 npm-debug.log
 
 .grunt/grunt-gh-pages/gh-pages/src/
-
-src/socket.js

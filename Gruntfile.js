@@ -106,15 +106,29 @@ module.exports = function(grunt) {
             postcompile: {
                 configFile: 'karma.postcompile.conf.js',
             }
-        }
+        },
+
+        ngAnnotate: {
+            options: {
+                add: true
+            // Task-specific options go here.
+            },
+            src: {
+                files: [{
+                    src: ['<%= app.src %>/**/*.js'],
+                }]
+            // Target-specific file lists and/or options go here.
+            }
+    },
 
     });
 
     grunt.loadNpmTasks('grunt-ngdocs');
     grunt.loadNpmTasks('grunt-contrib-copy');
+    grunt.loadNpmTasks('grunt-ng-annotate');
 
     // Registered tasks.
-    grunt.registerTask('default', ['concat:sails','copy:example']);
+    grunt.registerTask('default', ['ngAnnotate:src','concat:sails','copy:example']);
 
     grunt.registerTask('docs', ['ngdocs']);
 
