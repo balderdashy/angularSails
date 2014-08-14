@@ -1,4 +1,5 @@
-angular.module('angularSails.config',[]).factory('$SailsSDKConfig',function(){
+'use strict';
+angular.module('angularSails.config',[]).factory('$',function(){
 
     // Constants
   var CONNECTION_METADATA_PARAMS = {
@@ -14,10 +15,10 @@ angular.module('angularSails.config',[]).factory('$SailsSDKConfig',function(){
     platform: typeof module === 'undefined' ? 'browser' : 'node',
     language: 'javascript'
   };
+
   SDK_INFO.versionString =
     CONNECTION_METADATA_PARAMS.version + '=' + SDK_INFO.version + '&' +
     CONNECTION_METADATA_PARAMS.platform + '=' + SDK_INFO.platform + '&' +
     CONNECTION_METADATA_PARAMS.language + '=' + SDK_INFO.language;
-
-    return SDK_INFO;    
-})
+    return SDK_INFO;
+});

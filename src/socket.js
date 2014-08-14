@@ -8,8 +8,8 @@
 
 /**
  * @ngdoc overview
- * @module ngsails
- * @name ngsails
+ * @module angularSails.io
+ * @name angularSails.io
  *
  * @description foobar
  *
@@ -17,7 +17,18 @@
 
 
 
-function $sailsSocketProvider() {
+angular.module('angularSails.io',['angularSails.connection','angularSails.backend'])
+
+.factory('$sailsIO',function(){
+
+
+
+    return {
+        connect: _connect
+    }
+})
+
+.provider('$sailsSocket',function $sailsSocketProvider() {
 
     'use strict';
     // NOTE:  The usage of window and document instead of $window and $document here is
@@ -591,7 +602,7 @@ function $sailsSocketProvider() {
             /**
              * @ngdoc service
              * @kind function
-             * @name ngsails.$sailsSocket
+             * @name angularSails.io.$sailsSocket
              *
              * @requires $cacheFactory
              * @requires $rootScope
@@ -1255,6 +1266,4 @@ function $sailsSocketProvider() {
 
 
         }];
-}
-
-angular.module('angularSails.io',['angularSails.connection','angularSails.backend']).provider('$sailsSocket',$sailsSocketProvider)
+});

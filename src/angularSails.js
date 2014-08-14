@@ -1,3 +1,13 @@
+'use strict';
+
+/**
+ * @ngdoc overview
+ * @module angularSails
+ * @name angularSails
+ *
+ * @description angularSails v0.10.0
+ *
+ **/
 angular.module('angularSails',['angularSails.config','angularSails.connection','angularSails.resource','angularSails.io','angularSails.backend']).provider('$sails',function NgSailsProvider(){
 
         function NgSails($sailsResource){
@@ -13,7 +23,7 @@ angular.module('angularSails',['angularSails.config','angularSails.connection','
 
         NgSails.config = {
             models: {}
-        }
+        };
 
 
 
@@ -22,7 +32,7 @@ angular.module('angularSails',['angularSails.config','angularSails.connection','
 
             this.config.models[identity] = modelConfig;
 
-        }
+        };
         return NgSails;
 
-})
+});

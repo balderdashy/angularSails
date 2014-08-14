@@ -18,7 +18,7 @@ module.exports = function(config) {
       'tests/helpers/matchers.js',
       {pattern: 'lib/**/*.js', watched: true, included: true, served: true},
 
-      'dist/angularSails.js',
+      'dist/angularSails.min.js',
       'tests/**/*.spec.js',
 
     ],
@@ -47,7 +47,7 @@ module.exports = function(config) {
     // - Safari (only Mac)
     // - PhantomJS
     // - IE (only Windows)
-    browsers: ['PhantomJS', 'Chrome', 'Firefox'],
+    browsers: ['PhantomJS', 'Chrome', 'Firefox','Safari'],
 
 
     // Continuous Integration mode

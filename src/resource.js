@@ -1,47 +1,3 @@
-'use strict';
-
-var $sailsResourceMinErr = angular.$$minErr('$sailsResource');
-
-// Helper functions and regex to lookup a dotted path on an object
-// stopping at undefined/null.  The path must be composed of ASCII
-// identifiers (just like $parse)
-var MEMBER_NAME_REGEX = /^(\.[a-zA-Z_$][0-9a-zA-Z_$]*)+$/;
-
-function isValidDottedPath(path) {
-  return (path != null && path !== '' && path !== 'hasOwnProperty' &&
-      MEMBER_NAME_REGEX.test('.' + path));
-}
-
-function lookupDottedPath(obj, path) {
-  if (!isValidDottedPath(path)) {
-    throw $sailsResourceMinErr('badmember', 'Dotted member path "@{0}" is invalid.', path);
-  }
-  var keys = path.split('.');
-  for (var i = 0, ii = keys.length; i < ii && obj !== undefined; i++) {
-    var key = keys[i];
-    obj = (obj !== null) ? obj[key] : undefined;
-  }
-  return obj;
-}
-
-/**
- * Create a shallow copy of an object and clear other fields from the destination
- */
-function shallowClearAndCopy(src, dst) {
-  dst = dst || {};
-
-  angular.forEach(dst, function(value, key){
-    delete dst[key];
-  });
-
-  for (var key in src) {
-    if (src.hasOwnProperty(key) && !(key.charAt(0) === '$' && key.charAt(1) === '$')) {
-      dst[key] = src[key];
-    }
-  }
-
-  return dst;
-}
 
 /**
  * @ngdoc overview
@@ -109,6 +65,52 @@ angular.module('angularSails.resource', ['ng']).
         extend = angular.extend,
         copy = angular.copy,
         isFunction = angular.isFunction;
+
+        'use strict';
+
+        var $sailsResourceMinErr = angular.$$minErr('$sailsResource');
+
+        // Helper functions and regex to lookup a dotted path on an object
+        // stopping at undefined/null.  The path must be composed of ASCII
+        // identifiers (just like $parse)
+        var MEMBER_NAME_REGEX = /^(\.[a-zA-Z_$][0-9a-zA-Z_$]*)+$/;
+
+        function isValidDottedPath(path) {
+          return (path != null && path !== '' && path !== 'hasOwnProperty' &&
+              MEMBER_NAME_REGEX.test('.' + path));
+        }
+
+        function lookupDottedPath(obj, path) {
+          if (!isValidDottedPath(path)) {
+            throw $sailsResourceMinErr('badmember', 'Dotted member path "@{0}" is invalid.', path);
+          }
+          var keys = path.split('.');
+          for (var i = 0, ii = keys.length; i < ii && obj !== undefined; i++) {
+            var key = keys[i];
+            obj = (obj !== null) ? obj[key] : undefined;
+          }
+          return obj;
+        }
+
+        /**
+         * Create a shallow copy of an object and clear other fields from the destination
+         */
+        function shallowClearAndCopy(src, dst) {
+          dst = dst || {};
+
+          angular.forEach(dst, function(value, key){
+            delete dst[key];
+          });
+
+          for (var key in src) {
+            if (src.hasOwnProperty(key) && !(key.charAt(0) === '$' && key.charAt(1) === '$')) {
+              dst[key] = src[key];
+            }
+          }
+
+          return dst;
+        }
+
 
       /**
        * We need our custom method because encodeURIComponent is too aggressive and doesn't follow

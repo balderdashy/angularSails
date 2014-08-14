@@ -135,14 +135,14 @@ module.exports = function(grunt) {
 //
 //  grunt.registerTask('dev', ['watch']);
 //
-//  grunt.registerTask('test', ['karma:precompile']);
+  grunt.registerTask('test', ['karma:precompile']);
 //
-//  grunt.registerTask('build', [
-////    'jshint',
-////    'karma:precompile',
-////    'concat',
-//    'uglify',
-//    'copy',
-//    'karma:postcompile'
-//  ]);
+ grunt.registerTask('build', [
+//    'jshint',
+    'karma:precompile',
+    'concat:sails',
+   'uglify',
+   'copy',
+   'karma:postcompile'
+ ]);
 };

@@ -1,11 +1,14 @@
-(function ( window, angular ) {
+'use strict';
 
-(function(){
-    var angularSails = angular.module('angularSails',['angularSails.config','angularSails.context','angularSails.connection','angularSails.resource','angularSails.io'],['$provide',function($provide){
-
-        angularSails.$provide = $provide;
-
-    }]).provider('$sails',function NgSailsProvider(){
+/**
+ * @ngdoc overview
+ * @module angularSails
+ * @name angularSails
+ *
+ * @description angularSails v0.10.0
+ *
+ **/
+angular.module('angularSails',['angularSails.config','angularSails.connection','angularSails.resource','angularSails.io','angularSails.backend']).provider('$sails',function NgSailsProvider(){
 
         function NgSails($sailsResource){
             var sails = this;
@@ -20,7 +23,7 @@
 
         NgSails.config = {
             models: {}
-        }
+        };
 
 
 
@@ -29,21 +32,13 @@
 
             this.config.models[identity] = modelConfig;
 
-        }
+        };
         return NgSails;
 
-    }).run(['$sails',function($sails){
+});
 
-    }]);
-
-    if(typeof io !== 'undefined' && io.sails){
-        io.sails.autoConnect = false;
-    }
-
-
-})(window.io);
-
-angular.module('angularSails.config',[]).factory('$SailsSDKConfig',function(){
+'use strict';
+angular.module('angularSails.config',[]).factory('$',function(){
 
     // Constants
   var CONNECTION_METADATA_PARAMS = {
@@ -59,25 +54,26 @@ angular.module('angularSails.config',[]).factory('$SailsSDKConfig',function(){
     platform: typeof module === 'undefined' ? 'browser' : 'node',
     language: 'javascript'
   };
+
   SDK_INFO.versionString =
     CONNECTION_METADATA_PARAMS.version + '=' + SDK_INFO.version + '&' +
     CONNECTION_METADATA_PARAMS.platform + '=' + SDK_INFO.platform + '&' +
     CONNECTION_METADATA_PARAMS.language + '=' + SDK_INFO.language;
+    return SDK_INFO;
+});
 
-    return SDK_INFO;    
-})
-
+'use strict';
 /*
- * //Forked from:
- *
- * @license
- * angular-socket-io v0.6.0
- * (c) 2014 Brian Ford http://briantford.com
- * License: MIT
- *
- *
- *
- */
+* //Forked from:
+*
+* @license
+* angular-socket-io v0.6.0
+* (c) 2014 Brian Ford http://briantford.com
+* License: MIT
+*
+*
+*
+*/
 
 angular.module('angularSails.connection', ['angularSails.config'])
 
@@ -86,7 +82,7 @@ angular.module('angularSails.connection', ['angularSails.config'])
 
     var _connectionCache = {};
 
-    this.$get = ["$http", "$injector", function($http,$injector){
+    this.$get = ['$http', '$injector', function($http,$injector){
 
         return function sailsConnectionFactory(options){
 
@@ -96,224 +92,106 @@ angular.module('angularSails.connection', ['angularSails.config'])
 
             return $injector.get('$sailsSocket');
 
-        }
+        };
 
-    }]
+    }];
 
 })
 
 
 .provider('$sailsSocketFactory', function () {
 
-    'use strict';
 
     // when forwarding events, prefix the event name
     var defaultPrefix = 'socket:',
-      ioSocket;
+    ioSocket;
 
     // expose to provider
-    this.$get = ["$rootScope", "$timeout", "$SailsSDKConfig", function ($rootScope, $timeout, $SailsSDKConfig) {
+    this.$get = ['$rootScope', '$timeout', '$SailsSDKConfig', function ($rootScope, $timeout, $SailsSDKConfig) {
 
-        console.log($SailsSDKConfig.versionString)
-
-      var asyncAngularify = function (socket, callback) {
-        return callback ? function () {
-          var args = arguments;
-          $timeout(function () {
-            callback.apply(socket, args);
-          }, 0);
-        } : angular.noop;
-      };
-
-      return function socketFactory (options) {
-        options = options || {};
-        var socket = options.ioSocket || io.connect(options.url || '/',{ query : $SailsSDKConfig.versionString });
-        var prefix = options.prefix || defaultPrefix;
-        var defaultScope = options.scope || $rootScope;
-
-        var addListener = function (eventName, callback) {
-          socket.on(eventName, callback.__ng = asyncAngularify(socket, callback));
+        var asyncAngularify = function (socket, callback) {
+            return callback ? function () {
+                var args = arguments;
+                $timeout(function () {
+                    callback.apply(socket, args);
+                }, 0);
+            } : angular.noop;
         };
 
-        var addOnceListener = function (eventName, callback) {
-          socket.once(eventName, callback.__ng = asyncAngularify(socket, callback));
+        return function socketFactory (options) {
+            options = options || {};
+            var socket = options.ioSocket || io.connect(options.url || '/',{ query : $SailsSDKConfig.versionString });
+            var prefix = options.prefix || defaultPrefix;
+            var defaultScope = options.scope || $rootScope;
+
+            var addListener = function (eventName, callback) {
+                socket.on(eventName, callback.__ng = asyncAngularify(socket, callback));
+            };
+
+            var addOnceListener = function (eventName, callback) {
+                socket.once(eventName, callback.__ng = asyncAngularify(socket, callback));
+            };
+
+            var wrappedSocket = {
+                on: addListener,
+                addListener: addListener,
+                once: addOnceListener,
+
+
+
+                emit: function (eventName, data, callback) {
+                    var lastIndex = arguments.length - 1;
+                    callback = arguments[lastIndex];
+                    if(typeof callback === 'function') {
+                        callback = asyncAngularify(socket, callback);
+                        arguments[lastIndex] = callback;
+                    }
+                    return socket.emit.apply(socket, arguments);
+                },
+
+
+                removeListener: function (ev, fn) {
+                    if (fn && fn.__ng) {
+                        arguments[1] = fn.__ng;
+                    }
+                    return socket.removeListener.apply(socket, arguments);
+                },
+
+                removeAllListeners: function() {
+                    return socket.removeAllListeners.apply(socket, arguments);
+                },
+
+                disconnect: function (close) {
+                    return socket.disconnect(close);
+                },
+
+                // when socket.on('someEvent', fn (data) { ... }),
+                // call scope.$broadcast('someEvent', data)
+                forward: function (events, scope) {
+                    if (events instanceof Array === false) {
+                        events = [events];
+                    }
+                    if (!scope) {
+                        scope = defaultScope;
+                    }
+                    events.forEach(function (eventName) {
+                        var prefixedEvent = prefix + eventName;
+                        var forwardBroadcast = asyncAngularify(socket, function (data) {
+                            scope.$broadcast(prefixedEvent, data);
+                        });
+                        scope.$on('$destroy', function () {
+                            socket.removeListener(eventName, forwardBroadcast);
+                        });
+                        socket.on(eventName, forwardBroadcast);
+                    });
+                }
+            };
+
+            return wrappedSocket;
         };
-
-        var wrappedSocket = {
-          on: addListener,
-          addListener: addListener,
-          once: addOnceListener,
-
-
-
-          emit: function (eventName, data, callback) {
-            var lastIndex = arguments.length - 1;
-            var callback = arguments[lastIndex];
-            if(typeof callback == 'function') {
-              callback = asyncAngularify(socket, callback);
-              arguments[lastIndex] = callback;
-            }
-            return socket.emit.apply(socket, arguments);
-          },
-
-
-          removeListener: function (ev, fn) {
-            if (fn && fn.__ng) {
-              arguments[1] = fn.__ng;
-            }
-            return socket.removeListener.apply(socket, arguments);
-          },
-
-          removeAllListeners: function() {
-            return socket.removeAllListeners.apply(socket, arguments);
-          },
-
-          disconnect: function (close) {
-            return socket.disconnect(close);
-          },
-
-          // when socket.on('someEvent', fn (data) { ... }),
-          // call scope.$broadcast('someEvent', data)
-          forward: function (events, scope) {
-            if (events instanceof Array === false) {
-              events = [events];
-            }
-            if (!scope) {
-              scope = defaultScope;
-            }
-            events.forEach(function (eventName) {
-              var prefixedEvent = prefix + eventName;
-              var forwardBroadcast = asyncAngularify(socket, function (data) {
-                scope.$broadcast(prefixedEvent, data);
-              });
-              scope.$on('$destroy', function () {
-                socket.removeListener(eventName, forwardBroadcast);
-              });
-              socket.on(eventName, forwardBroadcast);
-            });
-          }
-        };
-
-        return wrappedSocket;
-      };
     }];
-  });
+});
 
-/*
-    QueryableWorker instances methods:
-     * sendQuery(queryable function name, argument to pass 1, argument to pass 2, etc. etc): calls a Worker's queryable function
-     * postMessage(string or JSON Data): see Worker.prototype.postMessage()
-     * terminate(): terminates the Worker
-     * addListener(name, function): adds a listener
-     * removeListener(name): removes a listener
-    QueryableWorker instances properties:
-     * defaultListener: the default listener executed only when the Worker calls the postMessage() function directly
-  */
-  function QueryableWorker (sURL, fDefListener, fOnError) {
-    var oInstance = this, oWorker = new Worker(sURL), oListeners = {};
-    this.defaultListener = fDefListener || function () {};
-    oWorker.onmessage = function (oEvent) {
-      if (oEvent.data instanceof Object && oEvent.data.hasOwnProperty("vo42t30") && oEvent.data.hasOwnProperty("rnb93qh")) {
-        oListeners[oEvent.data.vo42t30].apply(oInstance, oEvent.data.rnb93qh);
-      } else {
-        this.defaultListener.call(oInstance, oEvent.data);
-      }
-    };
-    if (fOnError) { oWorker.onerror = fOnError; }
-    this.sendQuery = function (/* queryable function name, argument to pass 1, argument to pass 2, etc. etc */) {
-      if (arguments.length < 1) { throw new TypeError("QueryableWorker.sendQuery - not enough arguments"); return; }
-      oWorker.postMessage({ "bk4e1h0": arguments[0], "ktp3fm1": Array.prototype.slice.call(arguments, 1) });
-    };
-    this.postMessage = function (vMsg) {
-      //I just think there is no need to use call() method
-      //how about just oWorker.postMessage(vMsg);
-      //the same situation with terminate
-      //well,just a little faster,no search up the prototye chain
-      Worker.prototype.postMessage.call(oWorker, vMsg);
-    };
-    this.terminate = function () {
-      Worker.prototype.terminate.call(oWorker);
-    };
-    this.addListener = function (sName, fListener) {
-      oListeners[sName] = fListener;
-    };
-    this.removeListener = function (sName) {
-      delete oListeners[sName];
-    };
-  };
-
-angular.module('angularSails.context',[])
-.factory('$$sailsInstanceCache',['$cacheFactory',function($cacheFactory){
-
-
-
-
-}])
-
-.factory('$backgroundProcess',function(){
-
-
-      // your custom "queryable" worker
-  var oMyTask = new QueryableWorker("/lib/worker.js" /* , yourDefaultMessageListenerHere [optional], yourErrorListenerHere [optional] */);
-
-      // your custom "listeners"
-
-      oMyTask.addListener("printSomething", function (nResult) {
-        
-      });
-
-      oMyTask.addListener("alertSomething", function (nDeltaT, sUnit) {
-        alert("Worker waited for " + nDeltaT + " " + sUnit + " :-)");
-      });
-
-      return oMyTask;
-
-})
-
-'use strict';
-
-var $sailsResourceMinErr = angular.$$minErr('$sailsResource');
-
-// Helper functions and regex to lookup a dotted path on an object
-// stopping at undefined/null.  The path must be composed of ASCII
-// identifiers (just like $parse)
-var MEMBER_NAME_REGEX = /^(\.[a-zA-Z_$][0-9a-zA-Z_$]*)+$/;
-
-function isValidDottedPath(path) {
-  return (path != null && path !== '' && path !== 'hasOwnProperty' &&
-      MEMBER_NAME_REGEX.test('.' + path));
-}
-
-function lookupDottedPath(obj, path) {
-  if (!isValidDottedPath(path)) {
-    throw $sailsResourceMinErr('badmember', 'Dotted member path "@{0}" is invalid.', path);
-  }
-  var keys = path.split('.');
-  for (var i = 0, ii = keys.length; i < ii && obj !== undefined; i++) {
-    var key = keys[i];
-    obj = (obj !== null) ? obj[key] : undefined;
-  }
-  return obj;
-}
-
-/**
- * Create a shallow copy of an object and clear other fields from the destination
- */
-function shallowClearAndCopy(src, dst) {
-  dst = dst || {};
-
-  angular.forEach(dst, function(value, key){
-    delete dst[key];
-  });
-
-  for (var key in src) {
-    if (src.hasOwnProperty(key) && !(key.charAt(0) === '$' && key.charAt(1) === '$')) {
-      dst[key] = src[key];
-    }
-  }
-
-  return dst;
-}
 
 /**
  * @ngdoc overview
@@ -381,6 +259,52 @@ angular.module('angularSails.resource', ['ng']).
         extend = angular.extend,
         copy = angular.copy,
         isFunction = angular.isFunction;
+
+        'use strict';
+
+        var $sailsResourceMinErr = angular.$$minErr('$sailsResource');
+
+        // Helper functions and regex to lookup a dotted path on an object
+        // stopping at undefined/null.  The path must be composed of ASCII
+        // identifiers (just like $parse)
+        var MEMBER_NAME_REGEX = /^(\.[a-zA-Z_$][0-9a-zA-Z_$]*)+$/;
+
+        function isValidDottedPath(path) {
+          return (path != null && path !== '' && path !== 'hasOwnProperty' &&
+              MEMBER_NAME_REGEX.test('.' + path));
+        }
+
+        function lookupDottedPath(obj, path) {
+          if (!isValidDottedPath(path)) {
+            throw $sailsResourceMinErr('badmember', 'Dotted member path "@{0}" is invalid.', path);
+          }
+          var keys = path.split('.');
+          for (var i = 0, ii = keys.length; i < ii && obj !== undefined; i++) {
+            var key = keys[i];
+            obj = (obj !== null) ? obj[key] : undefined;
+          }
+          return obj;
+        }
+
+        /**
+         * Create a shallow copy of an object and clear other fields from the destination
+         */
+        function shallowClearAndCopy(src, dst) {
+          dst = dst || {};
+
+          angular.forEach(dst, function(value, key){
+            delete dst[key];
+          });
+
+          for (var key in src) {
+            if (src.hasOwnProperty(key) && !(key.charAt(0) === '$' && key.charAt(1) === '$')) {
+              dst[key] = src[key];
+            }
+          }
+
+          return dst;
+        }
+
 
       /**
        * We need our custom method because encodeURIComponent is too aggressive and doesn't follow
@@ -665,8 +589,8 @@ angular.module('angularSails.resource', ['ng']).
 
 /**
  * @ngdoc overview
- * @module ngsails
- * @name ngsails
+ * @module angularSails.io
+ * @name angularSails.io
  *
  * @description foobar
  *
@@ -674,7 +598,502 @@ angular.module('angularSails.resource', ['ng']).
 
 
 
-function $sailsSocketProvider() {
+angular.module('angularSails.io',['angularSails.connection','angularSails.backend'])
+
+.factory('$sailsIO',function(){
+
+
+
+    return {
+        connect: _connect
+    }
+})
+
+.provider('$sailsSocket',function $sailsSocketProvider() {
+
+    'use strict';
+    // NOTE:  The usage of window and document instead of $window and $document here is
+    // deliberate.  This service depends on the specific behavior of anchor nodes created by the
+    // browser (resolving and parsing URLs) that is unlikely to be provided by mock objects and
+    // cause us to break tests.  In addition, when the browser resolves a URL for XHR, it
+    // doesn't know about mocked locations and resolves URLs to the real document - which is
+    // exactly the behavior needed here.  There is little value is mocking these out for this
+    // service.
+    var urlParsingNode = document.createElement("a");
+    var originUrl = urlResolve(window.location.href, true);
+
+    function forEach(obj, iterator, context) {
+        var key;
+        if (obj) {
+            if (isFunction(obj)){
+                for (key in obj) {
+                    // Need to check if hasOwnProperty exists,
+                    // as on IE8 the result of querySelectorAll is an object without a hasOwnProperty function
+                    if (key != 'prototype' && key != 'length' && key != 'name' && (!obj.hasOwnProperty || obj.hasOwnProperty(key))) {
+                        iterator.call(context, obj[key], key);
+                    }
+                }
+            } else if (obj.forEach && obj.forEach !== forEach) {
+                obj.forEach(iterator, context);
+            } else if (isArrayLike(obj)) {
+                for (key = 0; key < obj.length; key++)
+                    iterator.call(context, obj[key], key);
+            } else {
+                for (key in obj) {
+                    if (obj.hasOwnProperty(key)) {
+                        iterator.call(context, obj[key], key);
+                    }
+                }
+            }
+        }
+        return obj;
+    }
+
+
+    /**
+     * Chain all given functions
+     *
+     * This function is used for both request and response transforming
+     *
+     * @param {*} data Data to transform.
+     * @param {function(string=)} headers Http headers getter fn.
+     * @param {(Function|Array.<Function>)} fns Function or an array of functions.
+     * @returns {*} Transformed data.
+     */
+    function transformData(data, headers, fns) {
+        if (isFunction(fns))
+            return fns(data, headers);
+
+        forEach(fns, function(fn) {
+            data = fn(data, headers);
+        });
+
+        return data;
+    }
+
+    function shallowCopy(src, dst) {
+      if (isArray(src)) {
+        dst = dst || [];
+
+        for ( var i = 0; i < src.length; i++) {
+          dst[i] = src[i];
+        }
+      } else if (isObject(src)) {
+        dst = dst || {};
+
+        for (var key in src) {
+          if (hasOwnProperty.call(src, key) && !(key.charAt(0) === '$' && key.charAt(1) === '$')) {
+            dst[key] = src[key];
+          }
+        }
+      }
+
+      return dst || src;
+    }
+
+
+    function isSuccess(status) {
+        return 200 <= status && status < 300;
+    }
+
+
+    /**
+     * Parse headers into key value object
+     *
+     * @param {string} headers Raw headers as a string
+     * @returns {Object} Parsed headers as key value object
+     */
+    function parseHeaders(headers) {
+        var parsed = {}, key, val, i;
+
+        if (!headers) return parsed;
+
+        forEach(headers.split('\n'), function(line) {
+            i = line.indexOf(':');
+            key = lowercase(trim(line.substr(0, i)));
+            val = trim(line.substr(i + 1));
+
+            if (key) {
+                if (parsed[key]) {
+                    parsed[key] += ', ' + val;
+                } else {
+                    parsed[key] = val;
+                }
+            }
+        });
+
+        return parsed;
+    }
+    /**
+     * Returns a function that provides access to parsed headers.
+     *
+     * Headers are lazy parsed when first requested.
+     * @see parseHeaders
+     *
+     * @param {(string|Object)} headers Headers to provide access to.
+     * @returns {function(string=)} Returns a getter function which if called with:
+     *
+     *   - if called with single an argument returns a single header value or null
+     *   - if called with no arguments returns an object containing all headers.
+     */
+    function headersGetter(headers) {
+        var headersObj = isObject(headers) ? headers : undefined;
+
+        return function(name) {
+            if (!headersObj) headersObj =  parseHeaders(headers);
+
+            if (name) {
+                return headersObj[lowercase(name)] || null;
+            }
+
+            return headersObj;
+        };
+    }
+
+
+
+    var trim = (function() {
+      // native trim is way faster: http://jsperf.com/angular-trim-test
+      // but IE doesn't have it... :-(
+      // TODO: we should move this into IE/ES5 polyfill
+      if (!String.prototype.trim) {
+        return function(value) {
+          return isString(value) ? value.replace(/^\s\s*/, '').replace(/\s\s*$/, '') : value;
+        };
+      }
+      return function(value) {
+        return isString(value) ? value.trim() : value;
+      };
+    })();
+
+    function urlResolve(url, base) {
+        var href = url;
+
+        if (typeof msie !== 'undefined') {
+            // Normalize before parse.  Refer Implementation Notes on why this is
+            // done in two steps on IE.
+            urlParsingNode.setAttribute("href", href);
+            href = urlParsingNode.href;
+        }
+
+        urlParsingNode.setAttribute('href', href);
+
+        // urlParsingNode provides the UrlUtils interface - http://url.spec.whatwg.org/#urlutils
+        return {
+            href: urlParsingNode.href,
+            protocol: urlParsingNode.protocol ? urlParsingNode.protocol.replace(/:$/, '') : '',
+            host: urlParsingNode.host,
+            search: urlParsingNode.search ? urlParsingNode.search.replace(/^\?/, '') : '',
+            hash: urlParsingNode.hash ? urlParsingNode.hash.replace(/^#/, '') : '',
+            hostname: urlParsingNode.hostname,
+            port: urlParsingNode.port,
+            pathname: (urlParsingNode.pathname.charAt(0) === '/')
+                ? urlParsingNode.pathname
+                : '/' + urlParsingNode.pathname
+        };
+    }
+
+    /**
+     * Parse a request URL and determine whether this is a same-origin request as the application document.
+     *
+     * @param {string|object} requestUrl The url of the request as a string that will be resolved
+     * or a parsed URL object.
+     * @returns {boolean} Whether the request is for the same origin as the application document.
+     */
+    function urlIsSameOrigin(requestUrl) {
+        var parsed = (isString(requestUrl)) ? urlResolve(requestUrl) : requestUrl;
+        return (parsed.protocol === originUrl.protocol &&
+            parsed.host === originUrl.host);
+    }
+
+    function buildUrl(url, params) {
+        if (!params) return url;
+        var parts = [];
+        angular.forEach(params, function(value, key) {
+            if (value === null || angular.isUndefined(value)) return;
+            if (!isArray(value)) value = [value];
+
+            angular.forEach(value, function(v) {
+                if (isObject(v)) {
+                    v = toJson(v);
+                }
+                parts.push(encodeUriQuery(key) + '=' +
+                    encodeUriQuery(v));
+            });
+        });
+        if(parts.length > 0) {
+            url += ((url.indexOf('?') == -1) ? '?' : '&') + parts.join('&');
+        }
+        return url;
+    }
+    /**
+     * We need our custom method because encodeURIComponent is too aggressive and doesn't follow
+     * http://www.ietf.org/rfc/rfc3986.txt with regards to the character set (pchar) allowed in path
+     * segments:
+     *    segment       = *pchar
+     *    pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
+     *    pct-encoded   = "%" HEXDIG HEXDIG
+     *    unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
+     *    sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
+     *                     / "*" / "+" / "," / ";" / "="
+     */
+    function encodeUriSegment(val) {
+        return encodeUriQuery(val, true).
+            replace(/%26/gi, '&').
+            replace(/%3D/gi, '=').
+            replace(/%2B/gi, '+');
+    }
+
+
+    function toJsonReplacer(key, value) {
+        var val = value;
+
+        if (typeof key === 'string' && key.charAt(0) === '$') {
+            val = undefined;
+        } else if (isWindow(value)) {
+            val = '$WINDOW';
+        } else if (value &&  document === value) {
+            val = '$DOCUMENT';
+        } else if (isScope(value)) {
+            val = '$SCOPE';
+        }
+
+        return val;
+    }
+
+
+    function sortedKeys(obj) {
+        var keys = [];
+        for (var key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                keys.push(key);
+            }
+        }
+        return keys.sort();
+    }
+
+    function forEachSorted(obj, iterator, context) {
+        var keys = sortedKeys(obj);
+        for ( var i = 0; i < keys.length; i++) {
+            iterator.call(context, obj[keys[i]], keys[i]);
+        }
+        return keys;
+    }
+
+
+    /**
+     * when using forEach the params are value, key, but it is often useful to have key, value.
+     * @param {function(string, *)} iteratorFn
+     * @returns {function(*, string)}
+     */
+    function reverseParams(iteratorFn) {
+        return function(value, key) { iteratorFn(key, value); };
+    }
+
+
+    /**
+     * This method is intended for encoding *key* or *value* parts of query component. We need a custom
+     * method because encodeURIComponent is too aggressive and encodes stuff that doesn't have to be
+     * encoded per http://tools.ietf.org/html/rfc3986:
+     *    query       = *( pchar / "/" / "?" )
+     *    pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
+     *    unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
+     *    pct-encoded   = "%" HEXDIG HEXDIG
+     *    sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
+     *                     / "*" / "+" / "," / ";" / "="
+     */
+    function encodeUriQuery(val, pctEncodeSpaces) {
+        return encodeURIComponent(val).
+            replace(/%40/gi, '@').
+            replace(/%3A/gi, ':').
+            replace(/%24/g, '$').
+            replace(/%2C/gi, ',').
+            replace(/%20/g, (pctEncodeSpaces ? '%20' : '+'));
+    }
+
+
+    function valueFn(value) {return function() {return value;};}
+
+
+    function isUndefined(value){return typeof value === 'undefined';}
+
+
+    function isDefined(value){return typeof value !== 'undefined';}
+    function isObject(value){return value != null && typeof value === 'object';}
+    function isString(value){return typeof value === 'string';}
+    function isNumber(value){return typeof value === 'number';}
+    function isDate(value){
+        return toString.call(value) === '[object Date]';
+    }
+    function isFunction(value){return typeof value === 'function';}
+
+    function isScope(obj) {
+        return obj && obj.$evalAsync && obj.$watch;
+    }
+    function isFile(obj) {
+        return toString.call(obj) === '[object File]';
+    }
+
+
+    function isBlob(obj) {
+        return toString.call(obj) === '[object Blob]';
+    }
+
+
+    function isBoolean(value) {
+        return typeof value === 'boolean';
+    }
+
+    function isArray(value) {
+        return toString.call(value) === '[object Array]';
+    }
+
+
+    /**
+     * @private
+     * @param {*} obj
+     * @return {boolean} Returns true if `obj` is an array or array-like object (NodeList, Arguments,
+     *                   String ...)
+     */
+    function isArrayLike(obj) {
+        if (obj == null || isWindow(obj)) {
+            return false;
+        }
+
+        var length = obj.length;
+
+        if (obj.nodeType === 1 && length) {
+            return true;
+        }
+
+        return isString(obj) || isArray(obj) || length === 0 ||
+            typeof length === 'number' && length > 0 && (length - 1) in obj;
+    }
+
+    function isWindow(obj) {
+        return obj && obj.document && obj.location && obj.alert && obj.setInterval;
+    }
+
+    var lowercase = function(string){return isString(string) ? string.toLowerCase() : string;};
+    var hasOwnProperty = Object.prototype.hasOwnProperty;
+
+    function mergeHeaders(config) {
+        var defHeaders = defaults.headers,
+            reqHeaders = extend({}, config.headers),
+            defHeaderName, lowercaseDefHeaderName, reqHeaderName;
+
+        defHeaders = extend({}, defHeaders.common, defHeaders[lowercase(config.method)]);
+
+        // execute if header value is function
+        execHeaders(defHeaders);
+        execHeaders(reqHeaders);
+
+        // using for-in instead of forEach to avoid unecessary iteration after header has been found
+        defaultHeadersIteration:
+            for (defHeaderName in defHeaders) {
+                lowercaseDefHeaderName = lowercase(defHeaderName);
+
+                for (reqHeaderName in reqHeaders) {
+                    if (lowercase(reqHeaderName) === lowercaseDefHeaderName) {
+                        continue defaultHeadersIteration;
+                    }
+                }
+
+                reqHeaders[defHeaderName] = defHeaders[defHeaderName];
+            }
+
+        return reqHeaders;
+
+        function execHeaders(headers) {
+            var headerContent;
+
+            forEach(headers, function(headerFn, header) {
+                if (isFunction(headerFn)) {
+                    headerContent = headerFn();
+                    if (headerContent != null) {
+                        headers[header] = headerContent;
+                    } else {
+                        delete headers[header];
+                    }
+                }
+            });
+        }
+    }
+
+    var uppercase = function(string){return isString(string) ? string.toUpperCase() : string;};
+
+
+    var manualLowercase = function(s) {
+        /* jshint bitwise: false */
+        return isString(s)
+            ? s.replace(/[A-Z]/g, function(ch) {return String.fromCharCode(ch.charCodeAt(0) | 32);})
+            : s;
+    };
+    var manualUppercase = function(s) {
+        /* jshint bitwise: false */
+        return isString(s)
+            ? s.replace(/[a-z]/g, function(ch) {return String.fromCharCode(ch.charCodeAt(0) & ~32);})
+            : s;
+    };
+
+
+    // String#toLowerCase and String#toUpperCase don't produce correct results in browsers with Turkish
+    // locale, for this reason we need to detect this case and redefine lowercase/uppercase methods
+    // with correct but slower alternatives.
+    if ('i' !== 'I'.toLowerCase()) {
+        lowercase = manualLowercase;
+        uppercase = manualUppercase;
+    }
+
+    function toJson(obj, pretty) {
+        if (typeof obj === 'undefined') return undefined;
+        return JSON.stringify(obj, toJsonReplacer, pretty ? '  ' : null);
+    }
+
+
+
+    function fromJson(json) {
+        return isString(json)
+            ? JSON.parse(json)
+            : json;
+    }
+
+    function size(obj, ownPropsOnly) {
+        var count = 0, key;
+
+        if (isArray(obj) || isString(obj)) {
+            return obj.length;
+        } else if (isObject(obj)){
+            for (key in obj)
+                if (!ownPropsOnly || obj.hasOwnProperty(key))
+                    count++;
+        }
+
+        return count;
+    }
+
+
+    function includes(array, obj) {
+        return indexOf(array, obj) != -1;
+    }
+
+    function indexOf(array, obj) {
+        if (array.indexOf) return array.indexOf(obj);
+
+        for (var i = 0; i < array.length; i++) {
+            if (obj === array[i]) return i;
+        }
+        return -1;
+    }
+
+    function arrayRemove(array, value) {
+        var index = indexOf(array, value);
+        if (index >=0)
+            array.splice(index, 1);
+        return value;
+    }
+
+
     var JSON_START = /^\s*(\[|\{[^\{])/,
         JSON_END = /[\}\]]\s*$/,
         PROTECTION_PREFIX = /^\)\]\}',?\n/,
@@ -764,7 +1183,7 @@ function $sailsSocketProvider() {
             /**
              * @ngdoc service
              * @kind function
-             * @name ngsails.$sailsSocket
+             * @name angularSails.io.$sailsSocket
              *
              * @requires $cacheFactory
              * @requires $rootScope
@@ -1428,81 +1847,78 @@ function $sailsSocketProvider() {
 
 
         }];
-}
-
-angular.module('angularSails.io',['angularSails.connection']).provider('$sailsSocket',$sailsSocketProvider)
+});
 
 'use strict';
+angular.module('angularSails.backend',[]).provider('$sailsBackend',function sailsBackendProvider() {
 
-function createSailsBackend($sailsSocketFactory,$browser, $window, $injector, $q, $timeout,$httpBackend){
+    function createSailsBackend($sailsSocketFactory,$browser, $window, $injector, $q, $timeout,$httpBackend){
 
-    var tick = function (socket, callback) {
-        return callback ? function () {
-            var args = arguments;
-            $timeout(function () {
-                callback.apply(socket, args);
-            }, 0);
-        } : angular.noop;
-    };
-
-
-    var socket = $sailsSocketFactory();
-
-    function connection(method, url, post, callback, headers, timeout, withCredentials, responseType){
+        var tick = function (socket, callback) {
+            return callback ? function () {
+                var args = arguments;
+                $timeout(function () {
+                    callback.apply(socket, args);
+                }, 0);
+            } : angular.noop;
+        };
 
 
+        var socket = $sailsSocketFactory();
 
-        function socketResponse(body,jwr){
+        function connection(method, url, post, callback, headers, timeout, withCredentials, responseType){
 
-            callback(jwr.statusCode,body);
-            //status, response, headersString, statusText
+
+
+            function socketResponse(body,jwr){
+
+                callback(jwr.statusCode,body);
+                //status, response, headersString, statusText
+            }
+
+
+            url = url || $browser.url();
+
+
+            socket.emit(method.toLowerCase(),{ url: url, data: fromJson(post) },socketResponse);
+
         }
 
+        //TODO normalize http paths to event names
+        connection.subscribe = function(event,handler){
+            console.warn('$sailsSocket.subscribe is deprecated, use .on instead')
+            $window.io.socket.on(event,tick($window.io.socket,handler));
+        }
 
-        url = url || $browser.url();
+        connection.on = function(event,handler){
+            $window.io.socket.on(event,tick($window.io.socket,handler));
+        }
 
-
-        socket.emit(method.toLowerCase(),{ url: url, data: fromJson(post) },socketResponse);
+        return connection;
 
     }
 
-    //TODO normalize http paths to event names
-    connection.subscribe = function(event,handler){
-        console.warn('$sailsSocket.subscribe is deprecated, use .on instead')
-        $window.io.socket.on(event,tick($window.io.socket,handler));
-    }
+    /**
+    * @ngdoc service
+    * @name ngsails.$sailsSocketBackend
+    * @requires $window
+    * @requires $document
+    *
+    * @description
+    * Service used by the $sailsSocket that delegates to a
+    * Socket.io connection (or in theory, any connection type eventually)
+    *
+    * You should never need to use this service directly, instead use the higher-level abstractions:
+    * $sailsSocket or $sailsResource.
+    *
+    * During testing this implementation is swapped with $sailsMockBackend
+    *  which can be trained with responses.
+    */
 
-    connection.on = function(event,handler){
-        $window.io.socket.on(event,tick($window.io.socket,handler));
-    }
-
-    return connection;
-
-}
-
-/**
- * @ngdoc service
- * @name ngsails.$sailsSocketBackend
- * @requires $window
- * @requires $document
- *
- * @description
- * Service used by the $sailsSocket that delegates to a
- * Socket.io connection (or in theory, any connection type eventually)
- *
- * You should never need to use this service directly, instead use the higher-level abstractions:
- * $sailsSocket or $sailsResource.
- *
- * During testing this implementation is swapped with $sailsMockBackend
- *  which can be trained with responses.
- */
-function sailsBackendProvider() {
     this.$get = ['$sailsSocketFactory','$browser', '$window','$injector', '$q','$timeout', function($sailsSocketFactory,$browser, $window, $injector, $q,$timeout) {
         return createSailsBackend($sailsSocketFactory,$browser,$window, $injector, $q,$timeout);
     }];
-}
-
-angular.module('angularSails.io').provider('$sailsBackend',sailsBackendProvider);
+});
 
 
 'use strict';
@@ -1659,6 +2075,7 @@ function urlResolve(url, base) {
     };
 }
 
+var toString          = Object.prototype.toString;
 /**
  * Parse a request URL and determine whether this is a same-origin request as the application document.
  *
@@ -1822,6 +2239,8 @@ function isFunction(value){return typeof value === 'function';}
 function isScope(obj) {
     return obj && obj.$evalAsync && obj.$watch;
 }
+
+
 function isFile(obj) {
     return toString.call(obj) === '[object File]';
 }
@@ -1839,6 +2258,7 @@ function isBoolean(value) {
 function isArray(value) {
     return toString.call(value) === '[object Array]';
 }
+
 
 
 /**
@@ -1984,5 +2404,3 @@ function arrayRemove(array, value) {
         array.splice(index, 1);
     return value;
 }
-
-})( window, angular );
