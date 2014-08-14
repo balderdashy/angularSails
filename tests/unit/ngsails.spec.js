@@ -76,26 +76,6 @@ describe('angularSails config check', function(){
 
 describe('angularSails.io module', function(){
 
-    var ngsails;
-    beforeEach(function(){
-
-        ngsails = module('angularSails.io');
-
-    });
-
-    it('should provide a sailsSocket', function(){
-
-        inject(function($sailsSocket){
-            expect($sailsSocket).toBeDefined();
-
-
-            //expect($sailsSocket.foo).toBeDefined();
-        })
-
-
-
-    });
-
 
 
 });

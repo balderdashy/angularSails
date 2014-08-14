@@ -1,5 +1,5 @@
 (function(){
-    var angularSails = angular.module('angularSails',['angularSails.context','angularSails.resource','angularSails.io'],['$provide',function($provide){
+    var angularSails = angular.module('angularSails',['angularSails.config','angularSails.context','angularSails.connection','angularSails.resource','angularSails.io'],['$provide',function($provide){
 
         angularSails.$provide = $provide;
 
@@ -7,6 +7,8 @@
 
         function NgSails($sailsResource){
             var sails = this;
+
+            sails.$resource = $sailsResource;
 
             return sails;
         }
@@ -34,7 +36,6 @@
 
     if(typeof io !== 'undefined' && io.sails){
         io.sails.autoConnect = false;
-        console.log(io.sails)
     }
 
 

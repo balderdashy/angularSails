@@ -30,6 +30,26 @@ function transformData(data, headers, fns) {
     return data;
 }
 
+function shallowCopy(src, dst) {
+  if (isArray(src)) {
+    dst = dst || [];
+
+    for ( var i = 0; i < src.length; i++) {
+      dst[i] = src[i];
+    }
+  } else if (isObject(src)) {
+    dst = dst || {};
+
+    for (var key in src) {
+      if (hasOwnProperty.call(src, key) && !(key.charAt(0) === '$' && key.charAt(1) === '$')) {
+        dst[key] = src[key];
+      }
+    }
+  }
+
+  return dst || src;
+}
+
 
 function isSuccess(status) {
     return 200 <= status && status < 300;
@@ -88,6 +108,22 @@ function headersGetter(headers) {
         return headersObj;
     };
 }
+
+
+
+var trim = (function() {
+  // native trim is way faster: http://jsperf.com/angular-trim-test
+  // but IE doesn't have it... :-(
+  // TODO: we should move this into IE/ES5 polyfill
+  if (!String.prototype.trim) {
+    return function(value) {
+      return isString(value) ? value.replace(/^\s\s*/, '').replace(/\s\s*$/, '') : value;
+    };
+  }
+  return function(value) {
+    return isString(value) ? value.trim() : value;
+  };
+})();
 
 function urlResolve(url, base) {
     var href = url;

@@ -1,12 +1,12 @@
 //create a new module
-angular.module('sailsDemoApp',['angularSails']).config(['$sailsProvider',function($sailsProvider){
-
-    $sailsProvider.model('Message',{})
+angular.module('sailsDemoApp',['angularSails','angularSails.io']).config(['$sailsProvider',function($sailsProvider){
 
 
-}]).factory('User',['$sails',function($sails){
 
-    return $sails.model('User',{})
+
+}]).factory('TestAPI',['$sailsConnection',function($sailsConnection){
+
+    return $sailsConnection();
 }])
 
 
@@ -52,10 +52,10 @@ angular.module('sailsDemoApp',['angularSails']).config(['$sailsProvider',functio
     // })
 
 
-    .controller('DemoCtrl',function(Message,User,$scope){
+    .controller('DemoCtrl',function(TestAPI,$scope){
 
-        Message.find();
-        User.find()
+
+        TestAPI.emit('hello')
         // "use strict";
         //
         // $scope.newMessage = {};

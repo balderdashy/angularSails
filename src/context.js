@@ -58,7 +58,7 @@ angular.module('angularSails.context',[])
       // your custom "listeners"
 
       oMyTask.addListener("printSomething", function (nResult) {
-        console.log(nResult)
+        
       });
 
       oMyTask.addListener("alertSomething", function (nDeltaT, sUnit) {

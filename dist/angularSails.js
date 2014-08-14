@@ -1,7 +1,7 @@
 (function ( window, angular ) {
 
 (function(){
-    var angularSails = angular.module('angularSails',['angularSails.context','angularSails.resource','angularSails.io'],['$provide',function($provide){
+    var angularSails = angular.module('angularSails',['angularSails.context','angularSails.connection','angularSails.resource','angularSails.io'],['$provide',function($provide){
 
         angularSails.$provide = $provide;
 
@@ -9,6 +9,8 @@
 
         function NgSails($sailsResource){
             var sails = this;
+
+            sails.$resource = $sailsResource;
 
             return sails;
         }
@@ -36,49 +38,166 @@
 
     if(typeof io !== 'undefined' && io.sails){
         io.sails.autoConnect = false;
-        console.log(io.sails)
     }
 
 
 })(window.io);
 
+angular.module('angularSails.config',[]).factory('$SailsSDKConfig',function(){
 
-angular.module('ngsails.connection',[])
+    // Constants
+  var CONNECTION_METADATA_PARAMS = {
+    version: '__sails_io_sdk_version',
+    platform: '__sails_io_sdk_platform',
+    language: '__sails_io_sdk_language'
+  };
 
-.factory('SailsConnection',['$http','$injector','$q',function(Http,Injector,Promise){
+  // Current version of this SDK (sailsDK?!?!) and other metadata
+  // that will be sent along w/ the initial connection request.
+  var SDK_INFO = {
+    version: '0.10.0', // TODO: pull this automatically from package.json during build.
+    platform: typeof module === 'undefined' ? 'browser' : 'node',
+    language: 'javascript'
+  };
+  SDK_INFO.versionString =
+    CONNECTION_METADATA_PARAMS.version + '=' + SDK_INFO.version + '&' +
+    CONNECTION_METADATA_PARAMS.platform + '=' + SDK_INFO.platform + '&' +
+    CONNECTION_METADATA_PARAMS.language + '=' + SDK_INFO.language;
+
+    return SDK_INFO;    
+})
+
+/*
+ * //Forked from:
+ *
+ * @license
+ * angular-socket-io v0.6.0
+ * (c) 2014 Brian Ford http://briantford.com
+ * License: MIT
+ *
+ *
+ *
+ */
+
+angular.module('angularSails.connection', ['angularSails.config'])
 
 
-    //use $http by default...
-    var connection = Http;
+.provider('$sailsConnection', function () {
 
-    //unless $sailsSocket is included
-    if(Injector.has('$sailsSocket')){
-        connection = Injector.get('$sailsSocket');
+    var _connectionCache = {};
+
+
+
+
+
+    this.$get = function($http,$injector,$sailsSocketFactory){
+
+        return function sailsConnectionFactory(options){
+
+            return $sailsSocketFactory(options || {});
+
+        }
+
     }
 
+})
 
-    function using(resource, fn) {
-        // wraps it in case the resource was not promise
-        var pResource = Promise.when(resource);
-        return pResource.then(fn).finally(function() {
-            return pResource.then(function(resource) {
-                return resource.dispose();
+
+.provider('$sailsSocketFactory', function () {
+
+    'use strict';
+
+    // when forwarding events, prefix the event name
+    var defaultPrefix = 'socket:',
+      ioSocket;
+
+    // expose to provider
+    this.$get = function ($rootScope, $timeout, $SailsSDKConfig) {
+
+        console.log($SailsSDKConfig.versionString)
+
+      var asyncAngularify = function (socket, callback) {
+        return callback ? function () {
+          var args = arguments;
+          $timeout(function () {
+            callback.apply(socket, args);
+          }, 0);
+        } : angular.noop;
+      };
+
+      return function socketFactory (options) {
+        options = options || {};
+        var socket = options.ioSocket || io.connect('/',{query : $SailsSDKConfig.versionString });
+        var prefix = options.prefix || defaultPrefix;
+        var defaultScope = options.scope || $rootScope;
+
+        var addListener = function (eventName, callback) {
+          socket.on(eventName, callback.__ng = asyncAngularify(socket, callback));
+        };
+
+        var addOnceListener = function (eventName, callback) {
+          socket.once(eventName, callback.__ng = asyncAngularify(socket, callback));
+        };
+
+        var wrappedSocket = {
+          on: addListener,
+          addListener: addListener,
+          once: addOnceListener,
+
+
+
+          emit: function (eventName, data, callback) {
+            var lastIndex = arguments.length - 1;
+            var callback = arguments[lastIndex];
+            if(typeof callback == 'function') {
+              callback = asyncAngularify(socket, callback);
+              arguments[lastIndex] = callback;
+            }
+            return socket.emit.apply(socket, arguments);
+          },
+
+
+          removeListener: function (ev, fn) {
+            if (fn && fn.__ng) {
+              arguments[1] = fn.__ng;
+            }
+            return socket.removeListener.apply(socket, arguments);
+          },
+
+          removeAllListeners: function() {
+            return socket.removeAllListeners.apply(socket, arguments);
+          },
+
+          disconnect: function (close) {
+            return socket.disconnect(close);
+          },
+
+          // when socket.on('someEvent', fn (data) { ... }),
+          // call scope.$broadcast('someEvent', data)
+          forward: function (events, scope) {
+            if (events instanceof Array === false) {
+              events = [events];
+            }
+            if (!scope) {
+              scope = defaultScope;
+            }
+            events.forEach(function (eventName) {
+              var prefixedEvent = prefix + eventName;
+              var forwardBroadcast = asyncAngularify(socket, function (data) {
+                scope.$broadcast(prefixedEvent, data);
+              });
+              scope.$on('$destroy', function () {
+                socket.removeListener(eventName, forwardBroadcast);
+              });
+              socket.on(eventName, forwardBroadcast);
             });
-        });
-    }
+          }
+        };
 
-
-    function SailsConnection(provider,options){
-
-    }
-
-    SailsConnection.connect = function(){};
-
-    SailsConnection.authenticate = function(){};
-
-    SailsConnection.disconnect = function(){};
-
-}])
+        return wrappedSocket;
+      };
+    };
+  });
 
 /*
     QueryableWorker instances methods:
@@ -140,7 +259,7 @@ angular.module('angularSails.context',[])
       // your custom "listeners"
 
       oMyTask.addListener("printSomething", function (nResult) {
-        console.log(nResult)
+        
       });
 
       oMyTask.addListener("alertSomething", function (nDeltaT, sUnit) {
@@ -224,21 +343,38 @@ angular.module('angularSails.resource', ['ng']).
   provider('$sailsResource', function () {
     var provider = this;
 
+    this.config = {
+        basePath: '/',
+        models: {
+            attributes: {
+            id: {
+                primaryKey: true
+            },
+            createdAt: {
+                type: 'date'
+            },
+            updatedAt: {
+                type: 'date'
+            }
+        }
+        }
+    }
     this.defaults = {
       // Strip slashes by default
       stripTrailingSlashes: true,
 
       // Default actions configuration
-      actions: {
+      blueprints: {
         'find': {method: 'GET', isArray: true},
         'findOne': {method: 'GET'},
         'update': {method: 'PUT'},
         'create': {method: 'POST'},
-        'delete': {method: 'DELETE'}
-      }
+        'destroy': {method: 'DELETE'},
+        'stream': {method: 'GET'}
+    },
     };
 
-    this.$get = ['$http', '$q', function ($http, $q) {
+    this.$get = ['$http', '$q', '$cacheFactory','$injector',function ($http, $q, $cacheFactory,$injector) {
 
       var noop = angular.noop,
         forEach = angular.forEach,
@@ -353,12 +489,21 @@ angular.module('angularSails.resource', ['ng']).
       };
 
 
-      function resourceFactory(url, paramDefaults, actions, options) {
+      function resourceFactory(modelIdentity, model) {
 
+          model = model || {};
 
-        var route = new Route(url, options);
+          var paramDefaults = {id : '@id'}
 
-        actions = extend({}, provider.defaults.actions, actions);
+          var modelAttrs = model.attributes || {};
+
+          delete model.attributes;
+
+          var url = provider.basePath || '/' + modelIdentity.toLowerCase() + '/:id/:populate'
+
+        var route = new Route(url, {stripTrailingSlashes: true});
+
+        var actions = extend({}, provider.defaults.blueprints,model);
 
         function extractParams(data, actionParams) {
           var ids = {};
@@ -375,9 +520,28 @@ angular.module('angularSails.resource', ['ng']).
           return response.resource;
         }
 
+
+
+        /**
+         * SailsResource
+         */
+
         function SailsResource(value) {
           shallowClearAndCopy(value || {}, this);
         }
+
+
+        /**
+         * Finds and returns all records that meet the criteria object(s) that you pass it.
+         *
+         * @param  {Object} where find criteria
+         * @return {[type]}       [description]
+         */
+        SailsResource.find = function(where){
+
+        }
+
+
 
         SailsResource.prototype.toJSON = function () {
           var data = extend({}, this);
@@ -386,145 +550,99 @@ angular.module('angularSails.resource', ['ng']).
           return data;
         };
 
-        forEach(actions, function (action, name) {
-          var hasBody = /^(POST|PUT|PATCH)$/i.test(action.method);
-
-          SailsResource[name] = function (a1, a2, a3, a4) {
-            var params = {}, data, success, error;
-
-            /* jshint -W086 */ /* (purposefully fall through case statements) */
-            switch (arguments.length) {
-              case 4:
-                error = a4;
-                success = a3;
-              //fallthrough
-              case 3:
-              case 2:
-                if (isFunction(a2)) {
-                  if (isFunction(a1)) {
-                    success = a1;
-                    error = a2;
-                    break;
-                  }
-
-                  success = a2;
-                  error = a3;
-                  //fallthrough
-                } else {
-                  params = a1;
-                  data = a2;
-                  success = a3;
-                  break;
-                }
-              case 1:
-                if (isFunction(a1)) success = a1;
-                else if (hasBody) data = a1;
-                else params = a1;
-                break;
-              case 0: break;
-              default:
-                throw $sailsResourceMinErr('badargs',
-                  "Expected up to 4 arguments [params, data, success, error], got {0} arguments",
-                  arguments.length);
-            }
-            /* jshint +W086 */ /* (purposefully fall through case statements) */
-
-            var isInstanceCall = this instanceof SailsResource;
-            var value = isInstanceCall ? data : (action.isArray ? [] : new SailsResource(data));
-            var httpConfig = {};
-            var responseInterceptor = action.interceptor && action.interceptor.response ||
-              defaultResponseInterceptor;
-            var responseErrorInterceptor = action.interceptor && action.interceptor.responseError ||
-              undefined;
-
-            forEach(action, function (value, key) {
-              if (key != 'params' && key != 'isArray' && key != 'interceptor') {
-                httpConfig[key] = copy(value);
-              }
-            });
-
-            if (hasBody) httpConfig.data = data;
-            route.setUrlParams(httpConfig,
-              extend({}, extractParams(data, action.params || {}), params),
-              action.url);
-
-            var promise = $http(httpConfig).then(function (response) {
-              var data = response.data,
-                promise = value.$promise;
-
-              if (data) {
-                // Need to convert action.isArray to boolean in case it is undefined
-                // jshint -W018
-                if (angular.isArray(data) !== (!!action.isArray)) {
-                  throw $sailsResourceMinErr('badcfg',
-                      'Error in resource configuration. Expected ' +
-                      'response to contain an {0} but got an {1}',
-                    action.isArray ? 'array' : 'object',
-                    angular.isArray(data) ? 'array' : 'object');
-                }
-                // jshint +W018
-                if (action.isArray) {
-                  value.length = 0;
-                  forEach(data, function (item) {
-                    if (typeof item === "object") {
-                      value.push(new SailsResource(item));
-                    } else {
-                      // Valid JSON values may be string literals, and these should not be converted
-                      // into objects. These items will not have access to the Resource prototype
-                      // methods, but unfortunately there
-                      value.push(item);
-                    }
-                  });
-                } else {
-                  shallowClearAndCopy(data, value);
-                  value.$promise = promise;
-                }
-              }
-
-              value.$resolved = true;
-
-              response.resource = value;
-
-              return response;
-            }, function (response) {
-              value.$resolved = true;
-
-              (error || noop)(response);
-
-              return $q.reject(response);
-            });
-
-            promise = promise.then(
-              function (response) {
-                var value = responseInterceptor(response);
-                (success || noop)(value, response.headers);
-                return value;
-              },
-              responseErrorInterceptor);
-
-            if (!isInstanceCall) {
-              // we are creating instance / collection
-              // - set the initial promise
-              // - return the instance / collection
-              value.$promise = promise;
-              value.$resolved = false;
-
-              return value;
-            }
-
-            // instance call
-            return promise;
-          };
 
 
-          SailsResource.prototype['$' + name] = function (params, success, error) {
-            if (isFunction(params)) {
-              error = success; success = params; params = {};
-            }
-            var result = SailsResource[name].call(this, params, this, success, error);
-            return result.$promise || result;
-          };
-        });
+        // forEach(actions, function (action, name) {
+        //   var hasBody = /^(POST|PUT|PATCH)$/i.test(action.method);
+        //
+        //   SailsResource[name] = function (a1, a2, a3, a4) {
+        //     var params = {}, data;
+        //
+        //     if(!hasBody){
+        //         params = a1;
+        //     }
+        //
+        //     else{
+        //         data = a1;
+        //     }
+        //
+        //
+        //     var isInstanceCall = this instanceof SailsResource;
+        //     var value = isInstanceCall ? data : (action.isArray ? [] : new SailsResource(data));
+        //     var httpConfig = {};
+        //     var responseInterceptor = action.interceptor && action.interceptor.response ||
+        //       defaultResponseInterceptor;
+        //     var responseErrorInterceptor = action.interceptor && action.interceptor.responseError ||
+        //       undefined;
+        //
+        //     forEach(action, function (value, key) {
+        //       if (key != 'params' && key != 'isArray' && key != 'interceptor') {
+        //         httpConfig[key] = copy(value);
+        //       }
+        //     });
+        //
+        //     if (hasBody) httpConfig.data = data;
+        //     route.setUrlParams(httpConfig,
+        //       extend({}, extractParams(data, action.params || {}), params),
+        //       action.url);
+        //
+        //     var request = $http(httpConfig).then(function (response) {
+        //       var data = response.data;
+        //
+        //
+        //       if (data) {
+        //         // Need to convert action.isArray to boolean in case it is undefined
+        //         // jshint -W018
+        //         if (angular.isArray(data) !== (!!action.isArray)) {
+        //           throw $sailsResourceMinErr('badcfg',
+        //               'Error in resource configuration. Expected ' +
+        //               'response to contain an {0} but got an {1}',
+        //             action.isArray ? 'array' : 'object',
+        //             angular.isArray(data) ? 'array' : 'object');
+        //         }
+        //         // jshint +W018
+        //         if (action.isArray) {
+        //           value.length = 0;
+        //           forEach(data, function (item) {
+        //             if (typeof item === "object") {
+        //               value.push(new SailsResource(item));
+        //             } else {
+        //               // Valid JSON values may be string literals, and these should not be converted
+        //               // into objects. These items will not have access to the Resource prototype
+        //               // methods, but unfortunately there
+        //               value.push(item);
+        //             }
+        //           });
+        //         } else {
+        //           shallowClearAndCopy(data, value);
+        //
+        //         }
+        //
+        //         return value;
+        //       }
+        //
+        //
+        //
+        //     }, function (response) {
+        //
+        //
+        //       (error || noop)(response);
+        //
+        //       return $q.reject(response);
+        //     });
+        //
+        //     return request;
+        //
+        //   };
+        //
+        //
+        //
+        // });
+
+
+        SailsResource.prototype.destroy = function () {
+
+        };
 
         SailsResource.bind = function (additionalParamDefaults) {
           return resourceFactory(url, extend({}, paramDefaults, additionalParamDefaults), actions);
@@ -1312,7 +1430,7 @@ angular.module('angularSails.io',[]).provider('$sailsSocket',$sailsSocketProvide
 
 'use strict';
 
-function createSailsBackend($browser, $window, $injector, $q, $timeout){
+function createSailsBackend($browser, $window, $injector, $q, $timeout,$httpBackend){
 
     var tick = function (socket, callback) {
         return callback ? function () {

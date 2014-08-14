@@ -45,9 +45,9 @@ function $sailsSocketProvider() {
             common: {
                 'Accept': 'application/json, text/plain, */*'
             },
-            post:   angular.copy(CONTENT_TYPE_APPLICATION_JSON),
-            put:    angular.copy(CONTENT_TYPE_APPLICATION_JSON),
-            patch:  angular.copy(CONTENT_TYPE_APPLICATION_JSON)
+            post:   shallowCopy(CONTENT_TYPE_APPLICATION_JSON),
+            put:    shallowCopy(CONTENT_TYPE_APPLICATION_JSON),
+            patch:  shallowCopy(CONTENT_TYPE_APPLICATION_JSON)
         },
 
         xsrfCookieName: 'XSRF-TOKEN',
@@ -66,7 +66,7 @@ function $sailsSocketProvider() {
      */
     var responseInterceptorFactories = this.responseInterceptors = [];
 
-    this.$get = ['$sailsSocketBackend', '$browser', '$cacheFactory', '$rootScope', '$q', '$injector',
+    this.$get = ['$sailsBackend', '$browser', '$cacheFactory', '$rootScope', '$q', '$injector',
         function($sailsSocketBackend, $browser, $cacheFactory, $rootScope, $q, $injector) {
 
             var defaultCache = $cacheFactory('$sailsSocket');
@@ -394,7 +394,7 @@ function $sailsSocketProvider() {
                     var reqData = transformData(config.data, headersGetter(headers), config.transformRequest);
 
                     // strip content-type if data is undefined
-                    if (isUndefined(config.data)) {
+                    if (isUndefined(reqData)) {
                         forEach(headers, function(value, header) {
                             if (lowercase(header) === 'content-type') {
                                 delete headers[header];
@@ -598,7 +598,7 @@ function $sailsSocketProvider() {
              * @returns {HttpPromise} Future object
              */
 
-            $sailsSocket.subscribe = $sailsSocketBackend.subscribe;
+            $sailsSocket.on = $sailsSocketBackend.subscribe;
 
 
 
@@ -663,10 +663,10 @@ function $sailsSocketProvider() {
                 promise.then(removePendingReq, removePendingReq);
 
 
-                if ((config.cache || defaults.cache) && config.cache !== false && config.method == 'GET') {
+                if ((config.cache || defaults.cache) && config.cache !== false && (config.method === 'GET' || config.method === 'JSONP')) {
                     cache = isObject(config.cache) ? config.cache
-                        : isObject(defaults.cache) ? defaults.cache
-                        : defaultCache;
+                    : isObject(defaults.cache) ? defaults.cache
+                    : defaultCache;
                 }
 
                 if (cache) {
@@ -679,7 +679,7 @@ function $sailsSocketProvider() {
                         } else {
                             // serving from cache
                             if (isArray(cachedResp)) {
-                                resolvePromise(cachedResp[1], cachedResp[0], angular.copy(cachedResp[2]), cachedResp[3]);
+                                resolvePromise(cachedResp[1], cachedResp[0], shallowCopy(cachedResp[2]), cachedResp[3]);
                             } else {
                                 resolvePromise(cachedResp, 200, {}, 'OK');
                             }
@@ -753,10 +753,14 @@ function $sailsSocketProvider() {
 
                     angular.forEach(value, function(v) {
                         if (isObject(v)) {
-                            v = toJson(v);
+                            if (isDate(v)){
+                                v = v.toISOString();
+                            } else if (isObject(v)) {
+                                v = toJson(v);
+                            }
                         }
                         parts.push(encodeUriQuery(key) + '=' +
-                            encodeUriQuery(v));
+                         encodeUriQuery(v));
                     });
                 });
                 if(parts.length > 0) {
@@ -769,4 +773,4 @@ function $sailsSocketProvider() {
         }];
 }
 
-angular.module('angularSails.io',[]).provider('$sailsSocket',$sailsSocketProvider)
+angular.module('angularSails.io',['angularSails.connection']).provider('$sailsSocket',$sailsSocketProvider)

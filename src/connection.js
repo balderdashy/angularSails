@@ -10,24 +10,31 @@
  *
  */
 
-angular.module('angularSails.connection', [])
+angular.module('angularSails.connection', ['angularSails.config'])
 
 
 .provider('$sailsConnection', function () {
 
-    this.$get = function(){
-        return function connectionFactory(){
+    var _connectionCache = {};
 
-            return {}
+    this.$get = function($http,$injector){
+
+        return function sailsConnectionFactory(options){
+
+            if(options.useXHR){
+                return $http;
+            }
+
+            return $injector.get('$sailsSocket');
 
         }
-    }
 
+    }
 
 })
 
 
-.provider('$sailsSocketConnection', function () {
+.provider('$sailsSocketFactory', function () {
 
     'use strict';
 
@@ -36,7 +43,9 @@ angular.module('angularSails.connection', [])
       ioSocket;
 
     // expose to provider
-    this.$get = function ($rootScope, $timeout) {
+    this.$get = function ($rootScope, $timeout, $SailsSDKConfig) {
+
+        console.log($SailsSDKConfig.versionString)
 
       var asyncAngularify = function (socket, callback) {
         return callback ? function () {
@@ -49,7 +58,7 @@ angular.module('angularSails.connection', [])
 
       return function socketFactory (options) {
         options = options || {};
-        var socket = options.ioSocket || io.connect();
+        var socket = options.ioSocket || io.connect(options.url || '/',{ query : $SailsSDKConfig.versionString });
         var prefix = options.prefix || defaultPrefix;
         var defaultScope = options.scope || $rootScope;
 
@@ -66,6 +75,8 @@ angular.module('angularSails.connection', [])
           addListener: addListener,
           once: addOnceListener,
 
+
+
           emit: function (eventName, data, callback) {
             var lastIndex = arguments.length - 1;
             var callback = arguments[lastIndex];
@@ -76,15 +87,6 @@ angular.module('angularSails.connection', [])
             return socket.emit.apply(socket, arguments);
           },
 
-          send: function (eventName, data, callback) {
-            var lastIndex = arguments.length - 1;
-            var callback = arguments[lastIndex];
-            if(typeof callback == 'function') {
-              callback = asyncAngularify(socket, callback);
-              arguments[lastIndex] = callback;
-            }
-            return socket.emit.apply(socket, arguments);
-          },
 
           removeListener: function (ev, fn) {
             if (fn && fn.__ng) {

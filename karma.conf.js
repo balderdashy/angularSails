@@ -12,11 +12,15 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       'vendor/angular/angular.js',
-      'js/sails.io.js',
-      {pattern: 'lib/**/*.js', watched: true, included: true, served: true},
+
       'vendor/angular-mocks/angular-mocks.js',
+      'tests/mocks/mockSailsConnectionBackend.js',
+      'tests/helpers/matchers.js',
+      {pattern: 'lib/**/*.js', watched: true, included: true, served: true},
+
       'src/**/*.js',
-      'tests/**/*.spec.js'
+      'tests/**/*.spec.js',
+
     ],
 
     // list of files / patterns to exclude
@@ -45,7 +49,7 @@ module.exports = function(config) {
     // - IE (only Windows)
     browsers: ['Chrome'],
     proxies: {
-  '/api': 'http://localhost:1337/'
+
 }
 
 

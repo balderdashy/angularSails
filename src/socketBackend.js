@@ -1,6 +1,6 @@
 'use strict';
 
-function createSailsBackend($browser, $window, $injector, $q, $timeout){
+function createSailsBackend($sailsSocketFactory,$browser, $window, $injector, $q, $timeout,$httpBackend){
 
     var tick = function (socket, callback) {
         return callback ? function () {
@@ -11,6 +11,8 @@ function createSailsBackend($browser, $window, $injector, $q, $timeout){
         } : angular.noop;
     };
 
+
+    var socket = $sailsSocketFactory();
 
     function connection(method, url, post, callback, headers, timeout, withCredentials, responseType){
 
@@ -26,7 +28,7 @@ function createSailsBackend($browser, $window, $injector, $q, $timeout){
         url = url || $browser.url();
 
 
-        $window.io.socket[method.toLowerCase()](url,fromJson(post),socketResponse);
+        socket.emit(method.toLowerCase(),{ url: url, data: fromJson(post) },socketResponse);
 
     }
 
@@ -61,9 +63,9 @@ function createSailsBackend($browser, $window, $injector, $q, $timeout){
  *  which can be trained with responses.
  */
 function sailsBackendProvider() {
-    this.$get = ['$browser', '$window','$injector', '$q','$timeout', function($browser, $window, $injector, $q,$timeout) {
-        return createSailsBackend($browser,$window, $injector, $q,$timeout);
+    this.$get = ['$sailsSocketFactory','$browser', '$window','$injector', '$q','$timeout', function($sailsSocketFactory,$browser, $window, $injector, $q,$timeout) {
+        return createSailsBackend($sailsSocketFactory,$browser,$window, $injector, $q,$timeout);
     }];
 }
 
-angular.module('angularSails.io').provider('$sailsSocketBackend',sailsBackendProvider);
+angular.module('angularSails.io').provider('$sailsBackend',sailsBackendProvider);
