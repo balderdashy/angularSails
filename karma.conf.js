@@ -14,12 +14,12 @@ module.exports = function(config) {
       'vendor/angular/angular.js',
 
       'vendor/angular-mocks/angular-mocks.js',
-      'tests/mocks/mockSailsConnectionBackend.js',
-      'tests/helpers/matchers.js',
+      'test/mocks/mockSailsConnectionBackend.js',
+      'test/helpers/matchers.js',
       {pattern: 'lib/**/*.js', watched: true, included: true, served: true},
 
       'src/**/*.js',
-      'tests/**/*.spec.js',
+      'test/**/*.spec.js',
 
     ],
 
