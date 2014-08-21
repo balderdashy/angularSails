@@ -548,8 +548,8 @@ function $sailsSocketProvider() {
      */
     var responseInterceptorFactories = this.responseInterceptors = [];
 
-    this.$get = ['$sailsBackend', '$browser', '$cacheFactory', '$rootScope', '$q', '$injector',
-        function($sailsSocketBackend, $browser, $cacheFactory, $rootScope, $q, $injector) {
+    this.$get = ['$sailsConnection', '$browser', '$cacheFactory', '$rootScope', '$q', '$injector',
+        function($sailsConnection, $browser, $cacheFactory, $rootScope, $q, $injector) {
 
             var defaultCache = $cacheFactory('$sailsSocket');
 
@@ -1080,7 +1080,10 @@ function $sailsSocketProvider() {
              * @returns {HttpPromise} Future object
              */
 
-            $sailsSocket.on = $sailsSocketBackend.subscribe;
+            $sailsSocket.on = $sailsConnection.addListener;
+            $sailsSocket.addListener = $sailsConnection.addListener;
+
+            $sailsSocket.subscribe = $sailsConnection.addListener;
 
 
 
@@ -1174,7 +1177,7 @@ function $sailsSocketProvider() {
 
                 // if we won't have the response in cache, send the request to the backend
                 if (angular.isUndefined(cachedResp)) {
-                    $sailsSocketBackend(config.method, url, reqData, done, reqHeaders, config.timeout,
+                    $sailsConnection.request(config.method, url, reqData, done, reqHeaders, config.timeout,
                         config.withCredentials, config.responseType);
                 }
 

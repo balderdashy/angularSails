@@ -24,7 +24,6 @@ var jsFilesToInject = [
   // linked in the proper order order
 
   // Bring in the socket.io client
-  'js/sails.io.js',
 
   // then beef it up with some convenience logic for talking to Sails.js
   '../../../dist/angularSails.js',

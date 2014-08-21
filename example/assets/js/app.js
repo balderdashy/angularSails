@@ -1,12 +1,37 @@
 //create a new module
-angular.module('sailsDemoApp',['angularSails','angularSails.io']).config(['$sailsProvider',function($sailsProvider){
+angular.module('sailsDemoApp',['angularSails','ngAnimate','ngMaterial']).config(['$sailsProvider',function($sailsProvider){
 
 
 
 
-}]).factory('TestAPI',['$sailsConnection',function($sailsConnection){
+// }]).factory('Message',['$sailsSocket',function($sailsSocket){
+//
+//     $sailsSocket.on('message',function(message){
+//         console.log(message)
+//     })
+//
+//     return {
+//         load: function(){
+//             return $sailsSocket.get('/message').then(function(res){
+//                 return res.data;
+//             })
+//         },
+//         send: function(newMessage){
+//             return $sailsSocket.post('/message',newMessage).then(function(res){
+//                 return res.data;
+//             })
+//         }
+//     }
 
-    return $sailsConnection();
+}]).factory('Message',['$sailsResource',function($sailsResource){
+
+    return $sailsResource('message',{
+        attributes: {
+            id: "string",
+            body: "text"
+        }
+    });
+
 }])
 
 
@@ -52,23 +77,42 @@ angular.module('sailsDemoApp',['angularSails','angularSails.io']).config(['$sail
     // })
 
 
-    .controller('DemoCtrl',function(TestAPI,$scope){
+    .controller('DemoCtrl',function(Message,$scope,$materialSidenav){
+
+        $scope.tabs = [{name: 'home'},{name: 'docs'},{name: 'api'}]
+
+        $scope.openLeftMenu = function() {
+          $materialSidenav('left').toggle();
+        };
 
 
-        TestAPI.emit('hello')
+        Message.find().then(function(messages){
+            console.log(messages)
+        });
+
         // "use strict";
         //
-        // $scope.newMessage = {};
-        //
-        // Messages.load().then(function(messages){
-        //     $scope.messages = messages;
-        // });
-        //
-        // $scope.postMessage = function(newMessage){
-        //     Messages.send(newMessage).then(function(){
-        //         $scope.newMessage.body = '';
-        //     })
-        //
-        // }
+        $scope.newMessage = {};
 
-    });
+        $scope.postMessage = function(newMessage){
+            Message.create(newMessage).then(function(createdMessage){
+                $scope.messages.push(createdMessage);
+                $scope.newMessage.body = '';
+            })
+
+        }
+
+    }).directive('ig', function() {
+  return {
+    restrict: 'E',
+    replace: true,
+    scope: {
+      fid: '@'
+    },
+    template:
+      '<material-input-group>' +
+        '<label for="{{fid}}">Description</label>' +
+        '<input id="{{fid}}" type="text" ng-model="data.description">' +
+      '</material-input-group>'
+  };
+});

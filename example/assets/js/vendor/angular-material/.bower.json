@@ -1,0 +1,19 @@
+{
+  "name": "angular-material",
+  "version": "0.0.1",
+  "main": [
+    "angular-material.js",
+    "angular-material.css"
+  ],
+  "homepage": "https://github.com/angular/bower-material",
+  "_release": "0.0.1",
+  "_resolution": {
+    "type": "version",
+    "tag": "v0.0.1",
+    "commit": "9b315968e359f4b9a1c116abd0349b7213d3af04"
+  },
+  "_source": "git://github.com/angular/bower-material.git",
+  "_target": "~0.0.1",
+  "_originalSource": "angular-material",
+  "_direct": true
+}

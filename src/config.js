@@ -1,5 +1,5 @@
 'use strict';
-angular.module('angularSails.config',[]).factory('$',function(){
+angular.module('angularSails.config',[]).factory('$sailsSDKConfig',function(){
 
     // Constants
   var CONNECTION_METADATA_PARAMS = {

@@ -1,208 +1,220 @@
-// describe("angularSails:: $sailsResource", function() {
-//   var $sailsResource, Employee, callback, $httpBackend, resourceProvider;
+
+
+describe("angularSails:: $sailsResource", function() {
+
+var $timeout,
+$browser,
+rootScope,
+sailsIOBackend,
+mockIoSocket,
+spy,
+Employee
+
+
+beforeEach(function(){
+    //module('ngMocks')
+    module('angularSails');
+    module('angularSails.mocks');
+
+    inject(function($sailsSocketFactory,$sailsResource,$rootScope){
+
+        mockIoSocket = $sailsSocketFactory;
+
+        Employee = $sailsResource('employee',{})
+    })
+
+})
+
+afterEach(inject(function($exceptionHandler, $rootScope) {
+
+
+    $rootScope.$digest();
+    mockIoSocket.verifyNoOutstandingExpectation();
+    mockIoSocket.verifyNoOutstandingRequest();
+}));
+
+it('should make requests',function(){
+
+    mockIoSocket.expectEmit('GET',{url: '/employee'}).respond(200,[{id: 1, name: 'Joe'}])
+
+    var response;
+
+    Employee.find().then(function(employees){
+        response = employees;
+    })
+
+
+    mockIoSocket.flush();
+    expect(response[0].id).toEqual(1);
+
+})
+
+
+  it("should build resource that exposes blueprint methods", function() {
+    expect(typeof Employee.find).toBe('function');
+    expect(typeof Employee.findOne).toBe('function');
+    expect(typeof Employee.create).toBe('function');
+    expect(typeof Employee.update).toBe('function');
+    expect(typeof Employee.destroy).toBe('function');
+    expect(typeof Employee.stream).toBe('function');
+  });
+
+
+
+
 //
-//   beforeEach(module('angularSails.resource'));
-//
-//   beforeEach(module(function ($sailsResourceProvider) {
-//     resourceProvider = $sailsResourceProvider;
-//   }));
-//
-//   beforeEach(inject(function($injector) {
-//     $httpBackend = $injector.get('$httpBackend');
-//     $sailsResource = $injector.get('$sailsResource');
-//     Employee = $sailsResource('Employee', {
-//         connection: 'sailsTestConnection',
-//         attributes: {},
-//
-//     });
-//     callback = jasmine.createSpy();
-//   }));
-//
-//
-//   afterEach(function() {
-//     $httpBackend.verifyNoOutstandingExpectation();
-//   });
-//
-//   it("should build resource that exposes blueprint methods", function() {
-//     expect(typeof Employee.find).toBe('function');
-//     expect(typeof Employee.findOne).toBe('function');
-//     expect(typeof Employee.create).toBe('function');
-//     expect(typeof Employee.update).toBe('function');
-//     expect(typeof Employee.destroy).toBe('function');
-//     expect(typeof Employee.stream).toBe('function');
-//   });
-//
-//
-//
-//
-// //
-//   it('should correctly encode url params', function() {
-//     var R = $sailsResource('Foo');
-//
-//     $httpBackend.expect('GET', '/foo/foo%231').respond('{}');
-//     $httpBackend.expect('GET', '/foo/doh!@foo?bar=baz%231').respond('{}');
-//     $httpBackend.expect('GET', '/foo/herp$').respond('{}');
-//
-//     R.findOne({id: 'foo#1'});
-//     R.findOne({id: 'doh!@foo', bar: 'baz#1'});
-//     R.findOne({id: 'herp$'});
-//   });
-// //
-// //
-//   it('should encode array params', function() {
-//     var Foo = $sailsResource('Foo');
-//     $httpBackend.expect('GET', '/foo?bar=baz1&bar=baz2').respond('{}');
-//     Foo.find({ bar: ['baz1', 'baz2']});
-//   });
-// //
-//   it('should not encode string "null" to "+" in url params', function() {
-//     var R = $sailsResource('Foo');
-//     $httpBackend.expect('GET', '/foo/null').respond('{}');
-//     R.findOne({id: 'null'});
-//   });
-//
-// //
-// //
-//
-//   describe('Model blueprints',function(){
-//
-//       describe('Model.find()',function(){
-//
-//           it('should fetch all records', function() {
-//
-//             $httpBackend.expect('GET', '/employee').respond([{id: 1, name: 'joe'},{id: 3, name: 'joey'}]);
-//             var fetchedEmployees;
-//             Employee.find().then(function(data){
-//                 fetchedEmployees = data;
-//             })
-//             $httpBackend.flush();
-//             expect(fetchedEmployees[0].id).toEqual(1);
-//           });
-//
-//           it('should do a simple find for records', function() {
-//
-//             $httpBackend.expect('GET', '/employee?name=joe').respond([{id: 1, name: 'joe'},{id: 3, name: 'joey'}]);
-//         //    var Employee = $sailsResource('Employee');
-//             var fetchedEmployees;
-//             Employee.find({name: 'joe'}).then(function(data){
-//                 fetchedEmployees = data;
-//             })
-//             $httpBackend.flush();
-//             expect(fetchedEmployees[0].id).toEqual(1);
-//           });
-//       })
-//
-//       describe('Model.findOne()',function(){
-//
-//           it('should find one record by primary key', function() {
-//
-//             $httpBackend.expect('GET', '/employee/123').respond({id: 123});
-//         //    var Employee = $sailsResource('Employee');
-//             var employee;
-//             Employee.findOne({id: 123}).then(function(data){
-//                 employee = data;
-//             })
-//             $httpBackend.flush();
-//             expect(employee.id).toEqual(123);
-//           });
+  it('should correctly encode url params', function() {
+
+
+    mockIoSocket.expectEmit('GET', '/employee/foo%231').respond('{}');
+    mockIoSocket.expectEmit('GET', '/employee/doh!@foo?bar=baz%231').respond('{}');
+    mockIoSocket.expectEmit('GET', '/employee/herp$').respond('{}');
+
+    Employee.findOne({id: 'foo#1'});
+    Employee.findOne({id: 'doh!@foo', bar: 'baz#1'});
+    Employee.findOne({id: 'herp$'});
+
+    mockIoSocket.flush();
+  });
 //
 //
-//       })
+  it('should encode array params', function() {
+    mockIoSocket.expectEmit('GET', '/employee?bar=baz1&bar=baz2').respond('{}');
+    Employee.find({ bar: ['baz1', 'baz2']});
+
+    mockIoSocket.flush();
+  });
 //
-//       describe('Model.create()',function(){
-//
-//           it('should create a new record', function() {
-//
-//             $httpBackend.expect('POST', '/employee',{name: 'joe'}).respond({id: 123});
-//         //    var Employee = $sailsResource('Employee');
-//             var employee;
-//             Employee.create({name: 'joe'}).then(function(data){
-//                 employee = data;
-//             })
-//             $httpBackend.flush();
-//             expect(employee.id).toEqual(123);
-//           });
-//
-//
-//       })
-//
-//       describe('Model.update()',function(){
-//
-//           it('should update a record', function() {
-//
-//             $httpBackend.expect('PUT', '/employee/123',{id: 123, name: 'joe1'}).respond({id: 123, name: 'joe1'});
-//         //    var Employee = $sailsResource('Employee');
-//             var employee;
-//             Employee.update({id: 123, name: 'joe1'}).then(function(data){
-//                 employee = data;
-//             })
-//             $httpBackend.flush();
-//             expect(employee.id).toEqual(123);
-//           });
-//
-//
-//       })
-//
-//       describe('Model.destroy()',function(){
-//
-//           it('should delete a record', function() {
-//
-//             $httpBackend.expect('DELETE', '/employee/123').respond('{}');
-//         //    var Employee = $sailsResource('Employee');
-//             var employee;
-//             Employee.destroy({id: 123}).then(function(data){
-//
-//             })
-//             $httpBackend.flush();
-//           });
-//
-//
-//       })
-//
-//       describe('Instance.save()',function(){
-//
-//           it('save an existing record', function() {
-//
-//             $httpBackend.expect('GET', '/employee/123').respond({id: 123, name: 'joe'});
-//             $httpBackend.expect('PUT', '/employee').respond({id: 1, name: 'joe1'});
-//             var employeeInstance;
-//             Employee.findOne({id: 123}).then(function(data){
-//                 console.log(data)
-//                 employeeInstance = data;
-//                 employeeInstance.save();
-//
-//             })
-//
-//             $httpBackend.flush();
-//
-//           });
-//
-//           it('should do a simple find for records', function() {
-//
-//             $httpBackend.expect('GET', '/employee?name=joe').respond([{id: 1, name: 'joe'},{id: 3, name: 'joey'}]);
-//         //    var Employee = $sailsResource('Employee');
-//             var fetchedEmployees;
-//             Employee.find({name: 'joe'}).then(function(data){
-//                 fetchedEmployees = data;
-//             })
-//             $httpBackend.flush();
-//             expect(fetchedEmployees[0].id).toEqual(1);
-//           });
-//       })
-//
-//
-//   })
+
+
+  describe('Model blueprints',function(){
+
+      describe('Model.find()',function(){
+
+          it('should fetch all records', function() {
+
+            mockIoSocket.expectEmit('GET', '/employee').respond(200,[{id: 1, name: 'joe'},{id: 3, name: 'joey'}]);
+            var fetchedEmployees;
+            Employee.find().then(function(data){
+                fetchedEmployees = data;
+            })
+            mockIoSocket.flush();
+            expect(fetchedEmployees[0].id).toEqual(1);
+          });
+
+          it('should do a simple find for records', function() {
+
+            mockIoSocket.expectEmit('GET', '/employee?name=joe').respond(200,[{id: 1, name: 'joe'},{id: 3, name: 'joey'}]);
+        //    var Employee = $sailsResource('Employee');
+            var fetchedEmployees;
+            Employee.find({name: 'joe'}).then(function(data){
+                fetchedEmployees = data;
+            })
+            mockIoSocket.flush();
+            expect(fetchedEmployees[0].id).toEqual(1);
+          });
+      })
+
+      describe('Model.findOne()',function(){
+
+          it('should find one record by primary key', function() {
+
+            mockIoSocket.expectEmit('GET', '/employee/123').respond(200,{id: 123});
+        //    var Employee = $sailsResource('Employee');
+            var employee;
+            Employee.findOne({id: 123}).then(function(data){
+                employee = data;
+            })
+            mockIoSocket.flush();
+            expect(employee.id).toEqual(123);
+          });
+
+
+      })
+
+      describe('Model.create()',function(){
+
+          it('should create a new record', function() {
+
+            mockIoSocket.expectEmit('POST', '/employee',{name: 'joe'}).respond(201,{id: 123});
+        //    var Employee = $sailsResource('Employee');
+            var employee;
+            Employee.create({name: 'joe'}).then(function(data){
+                employee = data;
+            })
+            mockIoSocket.flush();
+            expect(employee.id).toEqual(123);
+          });
+
+
+      })
+
+      describe('Model.update()',function(){
+
+          it('should update a record', function() {
+
+            mockIoSocket.expectEmit('PUT', '/employee/123',{id: 123, name: 'joe1'}).respond(200,{id: 123, name: 'joe1'});
+        //    var Employee = $sailsResource('Employee');
+            var employee;
+            Employee.update({id: 123, name: 'joe1'}).then(function(data){
+                employee = data;
+            })
+            mockIoSocket.flush();
+            expect(employee.id).toEqual(123);
+          });
+
+
+      })
+
+      describe('Model.destroy()',function(){
+
+          it('should delete a record', function() {
+
+            mockIoSocket.expectEmit('DELETE', '/employee/123').respond(200,'{}');
+        //    var Employee = $sailsResource('Employee');
+            var employee;
+            Employee.destroy({id: 123}).then(function(data){
+
+            })
+            mockIoSocket.flush();
+          });
+
+
+      })
+
+      describe('Instance.save()',function(){
+
+          it('save an existing record', function() {
+
+            mockIoSocket.expectEmit('GET', '/employee/123').respond(200,{id: 123, name: 'joe'});
+            mockIoSocket.expectEmit('PUT', '/employee').respond(200,{id: 1, name: 'joe1'});
+            var employeeInstance;
+            Employee.findOne({id: 123}).then(function(data){
+                employeeInstance = data;
+                //employeeInstance.save();
+
+            })
+
+            mockIoSocket.flush();
+
+          });
+
+               })
+
+
+  })
+  })
 //
 //
 // //
 // //
 // //   it('should support @_property lookups with underscores', function() {
-// //     $httpBackend.expect('GET', '/Order/123').respond({_id: {_key:'123'}, count: 0});
+// //     mockIoSocket.expectEmit('GET', '/Order/123').respond({_id: {_key:'123'}, count: 0});
 // //     var LineItem = $sailsResource('/Order/:_id', {_id: '@_id._key'});
 // //     var item = LineItem.get({_id: 123});
 // //     $httpBackend.flush();
 // //     expect(item).toEqualData({_id: {_key: '123'}, count: 0});
-// //     $httpBackend.expect('POST', '/Order/123').respond({_id: {_key:'123'}, count: 1});
+// //     mockIoSocket.expectEmit('POST', '/Order/123').respond({_id: {_key:'123'}, count: 1});
 // //     item.$save();
 // //     $httpBackend.flush();
 // //     expect(item).toEqualData({_id: {_key: '123'}, count: 1});
@@ -212,8 +224,8 @@
 // //   it('should not pass default params between actions', function() {
 // //     var R = $sailsResource('/Path', {}, {get: {method: 'GET', params: {objId: '1'}}, perform: {method: 'GET'}});
 // //
-// //     $httpBackend.expect('GET', '/Path?objId=1').respond('{}');
-// //     $httpBackend.expect('GET', '/Path').respond('{}');
+// //     mockIoSocket.expectEmit('GET', '/Path?objId=1').respond('{}');
+// //     mockIoSocket.expectEmit('GET', '/Path').respond('{}');
 // //
 // //     R.get({});
 // //     R.perform({});
@@ -221,7 +233,7 @@
 // //
 // //
 // //   it("should build resource with action default param overriding default param", function() {
-// //     $httpBackend.expect('GET', '/Customer/123').respond({id: 'abc'});
+// //     mockIoSocket.expectEmit('GET', '/Customer/123').respond({id: 'abc'});
 // //     var TypeItem = $sailsResource('/:type/:typeId', {type: 'Order'},
 // //                                   {get: {method: 'GET', params: {type: 'Customer'}}});
 // //     var item = TypeItem.get({typeId: 123});
@@ -232,7 +244,7 @@
 // //
 // //
 // //   it('should build resource with action default param reading the value from instance', function() {
-// //     $httpBackend.expect('POST', '/Customer/123').respond();
+// //     mockIoSocket.expectEmit('POST', '/Customer/123').respond();
 // //     var R = $sailsResource('/Customer/:id', {}, {post: {method: 'POST', params: {id: '@id'}}});
 // //
 // //     var inst = new R({id:123});
@@ -243,7 +255,7 @@
 // //
 // //
 // //   it('should not throw TypeError on null default params', function() {
-// //     $httpBackend.expect('GET', '/Path').respond('{}');
+// //     mockIoSocket.expectEmit('GET', '/Path').respond('{}');
 // //     var R = $sailsResource('/Path', {param: null}, {get: {method: 'GET'}});
 // //
 // //     expect(function() {
@@ -256,7 +268,7 @@
 // //     var R = $sailsResource('/:id/:id');
 // //
 // //     $httpBackend.when('GET').respond('{}');
-// //     $httpBackend.expect('GET', '/1/1');
+// //     mockIoSocket.expectEmit('GET', '/1/1');
 // //
 // //     R.get({id:1});
 // //   });
@@ -270,7 +282,7 @@
 // //
 // //
 // //   it("should create resource", function() {
-// //     $httpBackend.expect('POST', '/Employee', '{"name":"misko"}').respond({id: 123, name: 'misko'});
+// //     mockIoSocket.expectEmit('POST', '/Employee', '{"name":"misko"}').respond({id: 123, name: 'misko'});
 // //
 // //     var cc = Employee.save({name: 'misko'}, callback);
 // //     expect(cc).toEqualData({name: 'misko'});
@@ -285,7 +297,7 @@
 // //
 // //
 // //   it("should read resource", function() {
-// //     $httpBackend.expect('GET', '/Employee/123').respond({id: 123, number: '9876'});
+// //     mockIoSocket.expectEmit('GET', '/Employee/123').respond({id: 123, number: '9876'});
 // //     var cc = Employee.get({id: 123}, callback);
 // //
 // //     expect(cc instanceof Employee).toBeTruthy();
@@ -300,7 +312,7 @@
 // //
 // //
 // //   it('should send correct headers', function() {
-// //     $httpBackend.expectPUT('/Employee/123', undefined, function(headers) {
+// //     mockIoSocket.expectEmitPUT('/Employee/123', undefined, function(headers) {
 // //       return headers['If-None-Match'] == "*";
 // //     }).respond({id:123});
 // //
@@ -309,7 +321,7 @@
 // //
 // //
 // //   it("should read partial resource", function() {
-// //     $httpBackend.expect('GET', '/Employee').respond([{id:{key:123}}]);
+// //     mockIoSocket.expectEmit('GET', '/Employee').respond([{id:{key:123}}]);
 // //     var ccs = Employee.query();
 // //
 // //     $httpBackend.flush();
@@ -319,7 +331,7 @@
 // //     expect(cc instanceof Employee).toBe(true);
 // //     expect(cc.number).toBeUndefined();
 // //
-// //     $httpBackend.expect('GET', '/Employee/123').respond({id: {key: 123}, number: '9876'});
+// //     mockIoSocket.expectEmit('GET', '/Employee/123').respond({id: {key: 123}, number: '9876'});
 // //     cc.$get(callback);
 // //     $httpBackend.flush();
 // //     expect(callback.mostRecentCall.args[0]).toEqual(cc);
@@ -329,7 +341,7 @@
 // //
 // //
 // //   it("should update resource", function() {
-// //     $httpBackend.expect('POST', '/Employee/123', '{"id":{"key":123},"name":"misko"}').
+// //     mockIoSocket.expectEmit('POST', '/Employee/123', '{"id":{"key":123},"name":"misko"}').
 // //                  respond({id: {key: 123}, name: 'rama'});
 // //
 // //     var cc = Employee.save({id: {key: 123}, name: 'misko'}, callback);
@@ -340,7 +352,7 @@
 // //
 // //
 // //   it("should query resource", function() {
-// //     $httpBackend.expect('GET', '/Employee?key=value').respond([{id: 1}, {id: 2}]);
+// //     mockIoSocket.expectEmit('GET', '/Employee?key=value').respond([{id: 1}, {id: 2}]);
 // //
 // //     var ccs = Employee.query({key: 'value'}, callback);
 // //     expect(ccs).toEqualData([]);
@@ -354,7 +366,7 @@
 // //
 // //
 // //   it("should have all arguments optional", function() {
-// //     $httpBackend.expect('GET', '/Employee').respond([{id:1}]);
+// //     mockIoSocket.expectEmit('GET', '/Employee').respond([{id:1}]);
 // //
 // //     var log = '';
 // //     var ccs = Employee.query(function() { log += 'cb;'; });
@@ -366,7 +378,7 @@
 // //
 // //
 // //   it('should delete resource and call callback', function() {
-// //     $httpBackend.expect('DELETE', '/Employee/123').respond({});
+// //     mockIoSocket.expectEmit('DELETE', '/Employee/123').respond({});
 // //     Employee.remove({id:123}, callback);
 // //     expect(callback).not.toHaveBeenCalled();
 // //
@@ -375,7 +387,7 @@
 // //     expect(callback.mostRecentCall.args[1]()).toEqual({});
 // //
 // //     callback.reset();
-// //     $httpBackend.expect('DELETE', '/Employee/333').respond(204, null);
+// //     mockIoSocket.expectEmit('DELETE', '/Employee/333').respond(204, null);
 // //     Employee.remove({id:333}, callback);
 // //     expect(callback).not.toHaveBeenCalled();
 // //
@@ -386,13 +398,13 @@
 // //
 // //
 // //   it('should post charge verb', function() {
-// //     $httpBackend.expect('POST', '/Employee/123!charge?amount=10', '{"auth":"abc"}').respond({success: 'ok'});
+// //     mockIoSocket.expectEmit('POST', '/Employee/123!charge?amount=10', '{"auth":"abc"}').respond({success: 'ok'});
 // //     Employee.charge({id:123, amount:10}, {auth:'abc'}, callback);
 // //   });
 // //
 // //
 // //   it('should post charge verb on instance', function() {
-// //     $httpBackend.expect('POST', '/Employee/123!charge?amount=10',
+// //     mockIoSocket.expectEmit('POST', '/Employee/123!charge?amount=10',
 // //         '{"id":{"key":123},"name":"misko"}').respond({success: 'ok'});
 // //
 // //     var card = new Employee({id:{key:123}, name:'misko'});
@@ -401,7 +413,7 @@
 // //
 // //
 // //   it("should patch a resource", function() {
-// //     $httpBackend.expectPATCH('/Employee/123', '{"name":"igor"}').
+// //     mockIoSocket.expectEmitPATCH('/Employee/123', '{"name":"igor"}').
 // //                      respond({id: 123, name: 'rama'});
 // //
 // //     var card = Employee.patch({id: 123}, {name: 'igor'}, callback);
@@ -415,7 +427,7 @@
 // //
 // //
 // //   it('should create on save', function() {
-// //     $httpBackend.expect('POST', '/Employee', '{"name":"misko"}').respond({id: 123}, {header1: 'a'});
+// //     mockIoSocket.expectEmit('POST', '/Employee', '{"name":"misko"}').respond({id: 123}, {header1: 'a'});
 // //
 // //     var cc = new Employee();
 // //     expect(cc.$get).toBeDefined();
@@ -436,13 +448,13 @@
 // //
 // //   it('should not mutate the resource object if response contains no body', function() {
 // //     var data = {id:{key:123}, number:'9876'};
-// //     $httpBackend.expect('GET', '/Employee/123').respond(data);
+// //     mockIoSocket.expectEmit('GET', '/Employee/123').respond(data);
 // //
 // //     var cc = Employee.get({id:123});
 // //     $httpBackend.flush();
 // //     expect(cc instanceof Employee).toBe(true);
 // //
-// //     $httpBackend.expect('POST', '/Employee/123', angular.toJson(data)).respond('');
+// //     mockIoSocket.expectEmit('POST', '/Employee/123', angular.toJson(data)).respond('');
 // //     var idBefore = cc.id;
 // //
 // //     cc.$save();
@@ -452,7 +464,7 @@
 // //
 // //
 // //   it('should bind default parameters', function() {
-// //     $httpBackend.expect('GET', '/Employee/123.visa?minimum=0.05').respond({id: 123});
+// //     mockIoSocket.expectEmit('GET', '/Employee/123.visa?minimum=0.05').respond({id: 123});
 // //     var Visa = Employee.bind({verb:'.visa', minimum:0.05});
 // //     var visa = Visa.get({id:123});
 // //     $httpBackend.flush();
@@ -465,7 +477,7 @@
 // //         Person = $sailsResource('/Person/:group/:id', { group: function() { return currentGroup; }});
 // //
 // //
-// //     $httpBackend.expect('GET', '/Person/students/fedor').respond({id: 'fedor', email: 'f@f.com'});
+// //     mockIoSocket.expectEmit('GET', '/Person/students/fedor').respond({id: 'fedor', email: 'f@f.com'});
 // //
 // //     var fedor = Person.get({id: 'fedor'});
 // //     $httpBackend.flush();
@@ -483,7 +495,7 @@
 // //         }
 // //       });
 // //
-// //     $httpBackend.expect('GET', '/Person/students/fedor').respond({id: 'fedor', email: 'f@f.com'});
+// //     mockIoSocket.expectEmit('GET', '/Person/students/fedor').respond({id: 'fedor', email: 'f@f.com'});
 // //
 // //     var fedor = Person.fetch({id: 'fedor'});
 // //     $httpBackend.flush();
@@ -495,18 +507,18 @@
 // //   it('should exercise full stack', function() {
 // //     var Person = $sailsResource('/Person/:id');
 // //
-// //     $httpBackend.expect('GET', '/Person/123').respond('\n{\n"name":\n"misko"\n}\n');
+// //     mockIoSocket.expectEmit('GET', '/Person/123').respond('\n{\n"name":\n"misko"\n}\n');
 // //     var person = Person.get({id:123});
 // //     $httpBackend.flush();
 // //     expect(person.name).toEqual('misko');
 // //   });
 // //
 // //   it('should return a resource instance when calling a class method with a resource instance', function() {
-// //     $httpBackend.expect('GET', '/Person/123').respond('{"name":"misko"}');
+// //     mockIoSocket.expectEmit('GET', '/Person/123').respond('{"name":"misko"}');
 // //     var Person = $sailsResource('/Person/:id');
 // //     var person = Person.get({id:123});
 // //     $httpBackend.flush();
-// //     $httpBackend.expect('POST', '/Person').respond('{"name":"misko2"}');
+// //     mockIoSocket.expectEmit('POST', '/Person').respond('{"name":"misko2"}');
 // //
 // //     var person2 = Person.save(person);
 // //     $httpBackend.flush();
@@ -515,7 +527,7 @@
 // //   });
 // //
 // //   it('should not include $promise and $resolved when resource is toJson\'ed', function() {
-// //     $httpBackend.expect('GET', '/Employee/123').respond({id: 123, number: '9876'});
+// //     mockIoSocket.expectEmit('GET', '/Employee/123').respond({id: 123, number: '9876'});
 // //     var cc = Employee.get({id: 123});
 // //     $httpBackend.flush();
 // //
@@ -541,7 +553,7 @@
 // //     describe('single resource', function() {
 // //
 // //       it('should add $promise to the result object', function() {
-// //         $httpBackend.expect('GET', '/Employee/123').respond({id: 123, number: '9876'});
+// //         mockIoSocket.expectEmit('GET', '/Employee/123').respond({id: 123, number: '9876'});
 // //         var cc = Employee.get({id: 123});
 // //
 // //         cc.$promise.then(callback);
@@ -555,7 +567,7 @@
 // //
 // //
 // //       it('should keep $promise around after resolution', function() {
-// //         $httpBackend.expect('GET', '/Employee/123').respond({id: 123, number: '9876'});
+// //         mockIoSocket.expectEmit('GET', '/Employee/123').respond({id: 123, number: '9876'});
 // //         var cc = Employee.get({id: 123});
 // //
 // //         cc.$promise.then(callback);
@@ -571,8 +583,8 @@
 // //
 // //
 // //       it('should keep the original promise after instance action', function() {
-// //         $httpBackend.expect('GET', '/Employee/123').respond({id: 123, number: '9876'});
-// //         $httpBackend.expect('POST', '/Employee/123').respond({id: 123, number: '9876'});
+// //         mockIoSocket.expectEmit('GET', '/Employee/123').respond({id: 123, number: '9876'});
+// //         mockIoSocket.expectEmit('POST', '/Employee/123').respond({id: 123, number: '9876'});
 // //
 // //         var cc = Employee.get({id: 123});
 // //         var originalPromise = cc.$promise;
@@ -585,7 +597,7 @@
 // //
 // //
 // //       it('should allow promise chaining', function() {
-// //         $httpBackend.expect('GET', '/Employee/123').respond({id: 123, number: '9876'});
+// //         mockIoSocket.expectEmit('GET', '/Employee/123').respond({id: 123, number: '9876'});
 // //         var cc = Employee.get({id: 123});
 // //
 // //         cc.$promise.then(function(value) { return 'new value'; }).then(callback);
@@ -596,7 +608,7 @@
 // //
 // //
 // //       it('should allow $promise error callback registration', function() {
-// //         $httpBackend.expect('GET', '/Employee/123').respond(404, 'resource not found');
+// //         mockIoSocket.expectEmit('GET', '/Employee/123').respond(404, 'resource not found');
 // //         var cc = Employee.get({id: 123});
 // //
 // //         cc.$promise.then(null, callback);
@@ -610,7 +622,7 @@
 // //
 // //
 // //       it('should add $resolved boolean field to the result object', function() {
-// //         $httpBackend.expect('GET', '/Employee/123').respond({id: 123, number: '9876'});
+// //         mockIoSocket.expectEmit('GET', '/Employee/123').respond({id: 123, number: '9876'});
 // //         var cc = Employee.get({id: 123});
 // //
 // //         expect(cc.$resolved).toBe(false);
@@ -625,7 +637,7 @@
 // //
 // //
 // //       it('should set $resolved field to true when an error occurs', function() {
-// //         $httpBackend.expect('GET', '/Employee/123').respond(404, 'resource not found');
+// //         mockIoSocket.expectEmit('GET', '/Employee/123').respond(404, 'resource not found');
 // //         var cc = Employee.get({id: 123});
 // //
 // //         cc.$promise.then(null, callback);
@@ -636,12 +648,12 @@
 // //
 // //
 // //       it('should keep $resolved true in all subsequent interactions', function() {
-// //         $httpBackend.expect('GET', '/Employee/123').respond({id: 123, number: '9876'});
+// //         mockIoSocket.expectEmit('GET', '/Employee/123').respond({id: 123, number: '9876'});
 // //         var cc = Employee.get({id: 123});
 // //         $httpBackend.flush();
 // //         expect(cc.$resolved).toBe(true);
 // //
-// //         $httpBackend.expect('POST', '/Employee/123').respond();
+// //         mockIoSocket.expectEmit('POST', '/Employee/123').respond();
 // //         cc.$save({id: 123});
 // //         expect(cc.$resolved).toBe(true);
 // //         $httpBackend.flush();
@@ -650,7 +662,7 @@
 // //
 // //
 // //       it('should return promise from action method calls', function() {
-// //         $httpBackend.expect('GET', '/Employee/123').respond({id: 123, number: '9876'});
+// //         mockIoSocket.expectEmit('GET', '/Employee/123').respond({id: 123, number: '9876'});
 // //         var cc = new Employee({name: 'Mojo'});
 // //
 // //         expect(cc).toEqualData({name: 'Mojo'});
@@ -662,7 +674,7 @@
 // //         expect(cc).toEqualData({id: 123, number: '9876'});
 // //         callback.reset();
 // //
-// //         $httpBackend.expect('POST', '/Employee').respond({id: 1, number: '9'});
+// //         mockIoSocket.expectEmit('POST', '/Employee').respond({id: 1, number: '9'});
 // //
 // //         cc.$save().then(callback);
 // //
@@ -674,7 +686,7 @@
 // //
 // //       it('should allow parsing a value from headers', function() {
 // //         // https://github.com/angular/angular.js/pull/2607#issuecomment-17759933
-// //         $httpBackend.expect('POST', '/Employee').respond(201, '', {'Location': '/new-id'});
+// //         mockIoSocket.expectEmit('POST', '/Employee').respond(201, '', {'Location': '/new-id'});
 // //
 // //         var parseUrlFromHeaders = function(response) {
 // //           var resource = response.resource;
@@ -698,7 +710,7 @@
 // //       });
 // //
 // //       it('should pass the same transformed value to success callbacks and to promises', function() {
-// //         $httpBackend.expect('GET', '/Employee').respond(200, { value: 'original' });
+// //         mockIoSocket.expectEmit('GET', '/Employee').respond(200, { value: 'original' });
 // //
 // //         var transformResponse = function (response) {
 // //           return { value: 'transformed' };
@@ -734,7 +746,7 @@
 // //     describe('resource collection', function() {
 // //
 // //       it('should add $promise to the result object', function() {
-// //         $httpBackend.expect('GET', '/Employee?key=value').respond([{id: 1}, {id: 2}]);
+// //         mockIoSocket.expectEmit('GET', '/Employee?key=value').respond([{id: 1}, {id: 2}]);
 // //         var ccs = Employee.query({key: 'value'});
 // //
 // //         ccs.$promise.then(callback);
@@ -748,7 +760,7 @@
 // //
 // //
 // //       it('should keep $promise around after resolution', function() {
-// //         $httpBackend.expect('GET', '/Employee?key=value').respond([{id: 1}, {id: 2}]);
+// //         mockIoSocket.expectEmit('GET', '/Employee?key=value').respond([{id: 1}, {id: 2}]);
 // //         var ccs = Employee.query({key: 'value'});
 // //
 // //         ccs.$promise.then(callback);
@@ -764,7 +776,7 @@
 // //
 // //
 // //       it('should allow promise chaining', function() {
-// //         $httpBackend.expect('GET', '/Employee?key=value').respond([{id: 1}, {id: 2}]);
+// //         mockIoSocket.expectEmit('GET', '/Employee?key=value').respond([{id: 1}, {id: 2}]);
 // //         var ccs = Employee.query({key: 'value'});
 // //
 // //         ccs.$promise.then(function(value) { return 'new value'; }).then(callback);
@@ -775,7 +787,7 @@
 // //
 // //
 // //       it('should allow $promise error callback registration', function() {
-// //         $httpBackend.expect('GET', '/Employee?key=value').respond(404, 'resource not found');
+// //         mockIoSocket.expectEmit('GET', '/Employee?key=value').respond(404, 'resource not found');
 // //         var ccs = Employee.query({key: 'value'});
 // //
 // //         ccs.$promise.then(null, callback);
@@ -789,7 +801,7 @@
 // //
 // //
 // //       it('should add $resolved boolean field to the result object', function() {
-// //         $httpBackend.expect('GET', '/Employee?key=value').respond([{id: 1}, {id: 2}]);
+// //         mockIoSocket.expectEmit('GET', '/Employee?key=value').respond([{id: 1}, {id: 2}]);
 // //         var ccs = Employee.query({key: 'value'}, callback);
 // //
 // //         expect(ccs.$resolved).toBe(false);
@@ -804,7 +816,7 @@
 // //
 // //
 // //       it('should set $resolved field to true when an error occurs', function() {
-// //         $httpBackend.expect('GET', '/Employee?key=value').respond(404, 'resource not found');
+// //         mockIoSocket.expectEmit('GET', '/Employee?key=value').respond(404, 'resource not found');
 // //         var ccs = Employee.query({key: 'value'});
 // //
 // //         ccs.$promise.then(null, callback);
@@ -827,7 +839,7 @@
 // //         }
 // //       });
 // //
-// //       $httpBackend.expect('GET', '/Employee').respond([{id: 1}]);
+// //       mockIoSocket.expectEmit('GET', '/Employee').respond([{id: 1}]);
 // //
 // //       var ccs = Employee.query();
 // //
@@ -856,7 +868,7 @@
 // //         }
 // //       });
 // //
-// //       $httpBackend.expect('GET', '/Employee').respond(404);
+// //       mockIoSocket.expectEmit('GET', '/Employee').respond(404);
 // //
 // //       var ccs = Employee.query();
 // //
@@ -886,7 +898,7 @@
 // //
 // //
 // //     it('should call the error callback if provided on non 2xx response', function() {
-// //       $httpBackend.expect('GET', '/Employee/123').respond(ERROR_CODE, ERROR_RESPONSE);
+// //       mockIoSocket.expectEmit('GET', '/Employee/123').respond(ERROR_CODE, ERROR_RESPONSE);
 // //
 // //       Employee.get({id:123}, callback, errorCB);
 // //       $httpBackend.flush();
@@ -896,7 +908,7 @@
 // //
 // //
 // //     it('should call the error callback if provided on non 2xx response (without data)', function() {
-// //       $httpBackend.expect('GET', '/Employee').respond(ERROR_CODE, ERROR_RESPONSE);
+// //       mockIoSocket.expectEmit('GET', '/Employee').respond(ERROR_CODE, ERROR_RESPONSE);
 // //
 // //       Employee.get(callback, errorCB);
 // //       $httpBackend.flush();
@@ -919,7 +931,7 @@
 // //       }
 // //     });
 // //
-// //     $httpBackend.expect('POST', '/Person/123', { __id: 123 }).respond({ __id: 456 });
+// //     mockIoSocket.expectEmit('POST', '/Person/123', { __id: 123 }).respond({ __id: 456 });
 // //     var person = new Person({id:123});
 // //     person.$save();
 // //     $httpBackend.flush();
@@ -930,7 +942,7 @@
 // //
 // //     describe('query', function() {
 // //       it('should add a suffix', function() {
-// //         $httpBackend.expect('GET', '/users.json').respond([{id: 1, name: 'user1'}]);
+// //         mockIoSocket.expectEmit('GET', '/users.json').respond([{id: 1, name: 'user1'}]);
 // //         var UserService = $sailsResource('/users/:id.json', {id: '@id'});
 // //         var user = UserService.query();
 // //         $httpBackend.flush();
@@ -938,7 +950,7 @@
 // //       });
 // //
 // //       it('should not require it if not provided', function(){
-// //         $httpBackend.expect('GET', '/users.json').respond([{id: 1, name: 'user1'}]);
+// //         mockIoSocket.expectEmit('GET', '/users.json').respond([{id: 1, name: 'user1'}]);
 // //         var UserService = $sailsResource('/users.json');
 // //         var user = UserService.query();
 // //         $httpBackend.flush();
@@ -946,7 +958,7 @@
 // //       });
 // //
 // //       it('should work when query parameters are supplied', function() {
-// //         $httpBackend.expect('GET', '/users.json?red=blue').respond([{id: 1, name: 'user1'}]);
+// //         mockIoSocket.expectEmit('GET', '/users.json?red=blue').respond([{id: 1, name: 'user1'}]);
 // //         var UserService = $sailsResource('/users/:user_id.json', {user_id: '@id'});
 // //         var user = UserService.query({red: 'blue'});
 // //         $httpBackend.flush();
@@ -954,7 +966,7 @@
 // //       });
 // //
 // //       it('should work when query parameters are supplied and the format is a resource parameter', function() {
-// //         $httpBackend.expect('GET', '/users.json?red=blue').respond([{id: 1, name: 'user1'}]);
+// //         mockIoSocket.expectEmit('GET', '/users.json?red=blue').respond([{id: 1, name: 'user1'}]);
 // //         var UserService = $sailsResource('/users/:user_id.:format', {user_id: '@id', format: 'json'});
 // //         var user = UserService.query({red: 'blue'});
 // //         $httpBackend.flush();
@@ -962,7 +974,7 @@
 // //       });
 // //
 // //       it('should work with the action is overriden', function(){
-// //         $httpBackend.expect('GET', '/users.json').respond([{id: 1, name: 'user1'}]);
+// //         mockIoSocket.expectEmit('GET', '/users.json').respond([{id: 1, name: 'user1'}]);
 // //         var UserService = $sailsResource('/users/:user_id', {user_id: '@id'}, {
 // //           query: {
 // //             method: 'GET',
@@ -976,21 +988,21 @@
 // //       });
 // //
 // //       it('should not convert string literals in array into Resource objects', function() {
-// //         $httpBackend.expect('GET', '/names.json').respond(["mary", "jane"]);
+// //         mockIoSocket.expectEmit('GET', '/names.json').respond(["mary", "jane"]);
 // //         var strings = $sailsResource('/names.json').query();
 // //         $httpBackend.flush();
 // //         expect(strings).toEqualData(["mary", "jane"]);
 // //       });
 // //
 // //       it('should not convert number literals in array into Resource objects', function() {
-// //         $httpBackend.expect('GET', '/names.json').respond([213, 456]);
+// //         mockIoSocket.expectEmit('GET', '/names.json').respond([213, 456]);
 // //         var numbers = $sailsResource('/names.json').query();
 // //         $httpBackend.flush();
 // //         expect(numbers).toEqualData([213, 456]);
 // //       });
 // //
 // //       it('should not convert boolean literals in array into Resource objects', function() {
-// //         $httpBackend.expect('GET', '/names.json').respond([true, false]);
+// //         mockIoSocket.expectEmit('GET', '/names.json').respond([true, false]);
 // //         var bools = $sailsResource('/names.json').query();
 // //         $httpBackend.flush();
 // //         expect(bools).toEqualData([true, false]);
@@ -999,7 +1011,7 @@
 // //
 // //     describe('get', function(){
 // //       it('should add them to the id', function() {
-// //         $httpBackend.expect('GET', '/users/1.json').respond({id: 1, name: 'user1'});
+// //         mockIoSocket.expectEmit('GET', '/users/1.json').respond({id: 1, name: 'user1'});
 // //         var UserService = $sailsResource('/users/:user_id.json', {user_id: '@id'});
 // //         var user = UserService.get({user_id: 1});
 // //         $httpBackend.flush();
@@ -1007,7 +1019,7 @@
 // //       });
 // //
 // //       it('should work when an id and query parameters are supplied', function() {
-// //         $httpBackend.expect('GET', '/users/1.json?red=blue').respond({id: 1, name: 'user1'});
+// //         mockIoSocket.expectEmit('GET', '/users/1.json?red=blue').respond({id: 1, name: 'user1'});
 // //         var UserService = $sailsResource('/users/:user_id.json', {user_id: '@id'});
 // //         var user = UserService.get({user_id: 1, red: 'blue'});
 // //         $httpBackend.flush();
@@ -1015,7 +1027,7 @@
 // //       });
 // //
 // //       it('should work when the format is a parameter', function() {
-// //         $httpBackend.expect('GET', '/users/1.json?red=blue').respond({id: 1, name: 'user1'});
+// //         mockIoSocket.expectEmit('GET', '/users/1.json?red=blue').respond({id: 1, name: 'user1'});
 // //         var UserService = $sailsResource('/users/:user_id.:format', {user_id: '@id', format: 'json'});
 // //         var user = UserService.get({user_id: 1, red: 'blue'});
 // //         $httpBackend.flush();
@@ -1023,7 +1035,7 @@
 // //       });
 // //
 // //       it('should work with the action is overriden', function(){
-// //         $httpBackend.expect('GET', '/users/1.json').respond({id: 1, name: 'user1'});
+// //         mockIoSocket.expectEmit('GET', '/users/1.json').respond({id: 1, name: 'user1'});
 // //         var UserService = $sailsResource('/users/:user_id', {user_id: '@id'}, {
 // //           get: {
 // //             method: 'GET',
@@ -1038,7 +1050,7 @@
 // //
 // //     describe("save", function() {
 // //       it('should append the suffix', function() {
-// //         $httpBackend.expect('POST', '/users.json', '{"name":"user1"}').respond({id: 123, name: 'user1'});
+// //         mockIoSocket.expectEmit('POST', '/users.json', '{"name":"user1"}').respond({id: 123, name: 'user1'});
 // //         var UserService = $sailsResource('/users/:user_id.json', {user_id: '@id'});
 // //         var user = UserService.save({name: 'user1'}, callback);
 // //         expect(user).toEqualData({name: 'user1'});
@@ -1051,7 +1063,7 @@
 // //       });
 // //
 // //       it('should append when an id is supplied', function() {
-// //         $httpBackend.expect('POST', '/users/123.json', '{"id":123,"name":"newName"}').respond({id: 123, name: 'newName'});
+// //         mockIoSocket.expectEmit('POST', '/users/123.json', '{"id":123,"name":"newName"}').respond({id: 123, name: 'newName'});
 // //         var UserService = $sailsResource('/users/:user_id.json', {user_id: '@id'});
 // //         var user = UserService.save({id: 123, name: 'newName'}, callback);
 // //         expect(callback).not.toHaveBeenCalled();
@@ -1063,7 +1075,7 @@
 // //       });
 // //
 // //       it('should append when an id is supplied and the format is a parameter', function() {
-// //         $httpBackend.expect('POST', '/users/123.json', '{"id":123,"name":"newName"}').respond({id: 123, name: 'newName'});
+// //         mockIoSocket.expectEmit('POST', '/users/123.json', '{"id":123,"name":"newName"}').respond({id: 123, name: 'newName'});
 // //         var UserService = $sailsResource('/users/:user_id.:format', {user_id: '@id', format: 'json'});
 // //         var user = UserService.save({id: 123, name: 'newName'}, callback);
 // //         expect(callback).not.toHaveBeenCalled();
@@ -1077,15 +1089,15 @@
 // //
 // //     describe('escaping /. with /\\.', function() {
 // //       it('should work with query()', function() {
-// //         $httpBackend.expect('GET', '/users/.json').respond();
+// //         mockIoSocket.expectEmit('GET', '/users/.json').respond();
 // //         $sailsResource('/users/\\.json').query();
 // //       });
 // //       it('should work with get()', function() {
-// //         $httpBackend.expect('GET', '/users/.json').respond();
+// //         mockIoSocket.expectEmit('GET', '/users/.json').respond();
 // //         $sailsResource('/users/\\.json').get();
 // //       });
 // //       it('should work with save()', function() {
-// //         $httpBackend.expect('POST', '/users/.json').respond();
+// //         mockIoSocket.expectEmit('POST', '/users/.json').respond();
 // //         $sailsResource('/users/\\.json').save({});
 // //       });
 // //     });
@@ -1094,7 +1106,7 @@
 // //   describe('action-level url override', function() {
 // //
 // //     it('should support overriding url template with static url', function() {
-// //       $httpBackend.expect('GET', '/override-url?type=Customer&typeId=123').respond({id: 'abc'});
+// //       mockIoSocket.expectEmit('GET', '/override-url?type=Customer&typeId=123').respond({id: 'abc'});
 // //       var TypeItem = $sailsResource('/:type/:typeId', {type: 'Order'}, {
 // //         get: {
 // //           method: 'GET',
@@ -1110,7 +1122,7 @@
 // //
 // //     it('should support overriding url template with a new template ending in param', function() {
 // //       //    url parameter in action, parameter ending the string
-// //       $httpBackend.expect('GET', '/Customer/123').respond({id: 'abc'});
+// //       mockIoSocket.expectEmit('GET', '/Customer/123').respond({id: 'abc'});
 // //       var TypeItem = $sailsResource('/foo/:type', {type: 'Order'}, {
 // //         get: {
 // //           method: 'GET',
@@ -1123,7 +1135,7 @@
 // //       expect(item).toEqualData({id: 'abc'});
 // //
 // //       //    url parameter in action, parameter not ending the string
-// //       $httpBackend.expect('GET', '/Customer/123/pay').respond({id: 'abc'});
+// //       mockIoSocket.expectEmit('GET', '/Customer/123/pay').respond({id: 'abc'});
 // //       TypeItem = $sailsResource('/foo/:type', {type: 'Order'}, {
 // //         get: {
 // //           method: 'GET',
@@ -1138,7 +1150,7 @@
 // //
 // //
 // //     it('should support overriding url template with a new template ending in string', function() {
-// //       $httpBackend.expect('GET', '/Customer/123/pay').respond({id: 'abc'});
+// //       mockIoSocket.expectEmit('GET', '/Customer/123/pay').respond({id: 'abc'});
 // //       var TypeItem = $sailsResource('/foo/:type', {type: 'Order'}, {
 // //         get: {
 // //           method: 'GET',
@@ -1172,7 +1184,7 @@
 // //     var successSpy = jasmine.createSpy('successSpy');
 // //     var failureSpy = jasmine.createSpy('failureSpy');
 // //
-// //     $httpBackend.expect('GET', '/Customer/123').respond({id: 'abc'});
+// //     mockIoSocket.expectEmit('GET', '/Customer/123').respond({id: 'abc'});
 // //
 // //     $sailsResource('/Customer/123').query()
 // //       .$promise.then(successSpy, function(e) { failureSpy(e.message); });
@@ -1189,7 +1201,7 @@
 // //     var successSpy = jasmine.createSpy('successSpy');
 // //     var failureSpy = jasmine.createSpy('failureSpy');
 // //
-// //     $httpBackend.expect('GET', '/Customer/123').respond([1,2,3]);
+// //     mockIoSocket.expectEmit('GET', '/Customer/123').respond([1,2,3]);
 // //
 // //     $sailsResource('/Customer/123').get()
 // //       .$promise.then(successSpy, function(e) { failureSpy(e.message); });

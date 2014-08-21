@@ -14,36 +14,14 @@
 angular.module('angularSails.connection', ['angularSails.config'])
 
 
-.provider('$sailsConnection', function () {
-
-    var _connectionCache = {};
-
-    this.$get = ['$http', '$injector', function($http,$injector){
-
-        return function sailsConnectionFactory(options){
-
-            if(options.useXHR){
-                return $http;
-            }
-
-            return $injector.get('$sailsSocket');
-
-        };
-
-    }];
-
-})
-
-
 .provider('$sailsSocketFactory', function () {
 
 
     // when forwarding events, prefix the event name
-    var defaultPrefix = 'socket:',
-    ioSocket;
+    var defaultPrefix = 'socket:';
 
     // expose to provider
-    this.$get = ['$rootScope', '$timeout', '$SailsSDKConfig', function ($rootScope, $timeout, $SailsSDKConfig) {
+    this.$get = ['$rootScope', '$timeout', '$sailsSDKConfig',function ($rootScope, $timeout,$sailsSDKConfig) {
 
         var asyncAngularify = function (socket, callback) {
             return callback ? function () {
@@ -56,7 +34,7 @@ angular.module('angularSails.connection', ['angularSails.config'])
 
         return function socketFactory (options) {
             options = options || {};
-            var socket = options.ioSocket || io.connect(options.url || '/',{ query : $SailsSDKConfig.versionString });
+            var socket = options.ioSocket || io.connect(options.url || '/',{ query : $sailsSDKConfig.versionString });
             var prefix = options.prefix || defaultPrefix;
             var defaultScope = options.scope || $rootScope;
 

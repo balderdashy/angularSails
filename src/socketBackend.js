@@ -1,7 +1,17 @@
 'use strict';
-angular.module('angularSails.backend',[]).provider('$sailsBackend',function sailsBackendProvider() {
+angular.module('angularSails.backend',[]).provider('$sailsConnection',function sailsBackendProvider() {
 
-    function createSailsBackend($sailsSocketFactory,$browser, $window, $injector, $q, $timeout,$httpBackend){
+
+        var config =  {
+            url: 'http://localhost:1337',
+            autoConnect: true,
+            ioSocket: undefined
+
+        }
+
+        this.config = config;
+
+        function createSailsBackend($sailsSocketFactory,$browser, $window, $injector, $q, $timeout){
 
         var tick = function (socket, callback) {
             return callback ? function () {
@@ -13,35 +23,78 @@ angular.module('angularSails.backend',[]).provider('$sailsBackend',function sail
         };
 
 
-        var socket = $sailsSocketFactory();
+        var deferredSocket = $q.defer();
 
-        function connection(method, url, post, callback, headers, timeout, withCredentials, responseType){
+        var socket = config.ioSocket || $sailsSocketFactory();
+
+        if(socket.connected){
+            deferredSocket.resolve(socket);
+        }
+        else{
+            socket.on('connect',function(){
+                deferredSocket.resolve(socket);
+            });
+        }
 
 
 
-            function socketResponse(body,jwr){
 
-                callback(jwr.statusCode,body);
+        function openConnection(){
+            return deferredSocket.promise;
+        }
+
+
+        function connection(url,options){
+
+        }
+
+        connection._listeners = [];
+        connection.connect = function(){
+            return openConnection.promise;
+        }
+
+        connection.request = function(method, url, post, callback, headers, timeout, withCredentials, responseType){
+
+
+
+
+
+            function socketResponse(response){
+                callback(response.statusCode || 200,response.body || {}, response.headers || {}, response.statusText);
                 //status, response, headersString, statusText
             }
+
+
 
 
             url = url || $browser.url();
 
 
-            socket.emit(method.toLowerCase(),{ url: url, data: fromJson(post) },socketResponse);
+            openConnection().then(function(ioSocket){
+
+                ioSocket.emit(method.toLowerCase(),{ url: url, data: fromJson(post) },socketResponse);
+            });
 
         }
 
-        //TODO normalize http paths to event names
-        connection.subscribe = function(event,handler){
-            console.warn('$sailsSocket.subscribe is deprecated, use .on instead')
-            $window.io.socket.on(event,tick($window.io.socket,handler));
-        }
 
-        connection.on = function(event,handler){
-            $window.io.socket.on(event,tick($window.io.socket,handler));
-        }
+        /**
+        * Adds a notification listener
+        * @param {callback} callback The callback to receive updates from the connection
+        * @returns {handle} The callback handle
+        */
+        connection.addListener = function (eventName,callback) {
+            return socket.addListener(eventName,callback);
+        };
+
+        /**
+        * Removes a notification listener
+        * @param {handle} handle The handle for the callback
+        */
+        connection.removeListener = function (eventName,callback) {
+            return socket.removeListener(eventName,callback)
+        };
+
 
         return connection;
 
@@ -67,4 +120,8 @@ angular.module('angularSails.backend',[]).provider('$sailsBackend',function sail
     this.$get = ['$sailsSocketFactory','$browser', '$window','$injector', '$q','$timeout', function($sailsSocketFactory,$browser, $window, $injector, $q,$timeout) {
         return createSailsBackend($sailsSocketFactory,$browser,$window, $injector, $q,$timeout);
     }];
+
+
+
+
 });

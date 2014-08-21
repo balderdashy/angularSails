@@ -2,25 +2,27 @@ describe("angularSails:: $sailsSocket", function() {
 
     var $timeout,
     $browser,
-    $sailsBackend,
+    rootScope,
+    sailsIOBackend,
     mockIoSocket,
     spy;
 
-    beforeEach(module('ngMock'));
-    beforeEach(module('angularSails'));
 
-    beforeEach(module('angularSailsMocks'));
+    beforeEach(function(){
+        //module('ngMocks')
+        module('angularSails');
+        module('angularSails.mocks');
 
-    beforeEach(inject(function($injector) {
+        inject(function($sailsSocketFactory){
 
-        $sailsBackend = $injector.get('$sailsBackend');
+            mockIoSocket = $sailsSocketFactory;
+        })
 
-        callback = jasmine.createSpy();
-    }));
+    })
 
-    it('should make requests',inject(function($sailsSocket){
+    it('should make requests',inject(function($rootScope,$sailsSocket){
 
-        $sailsBackend.expectGET('/foo').respond({foo: "bar"});
+        mockIoSocket.expectEmit('GET',{url: '/foo'}).respond(200,{foo: "bar"})
 
         var response;
 
@@ -28,8 +30,9 @@ describe("angularSails:: $sailsSocket", function() {
             response = res.data;
         })
 
-        $sailsBackend.flush();
 
+        mockIoSocket.flush();
+        $rootScope.$digest()
         expect(response).toEqual({foo: "bar"});
 
     }))

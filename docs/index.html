@@ -30,20 +30,20 @@
       addTag('link', {rel: 'stylesheet', href: 'css/docs.css', type: 'text/css'});
       addTag('link', {rel: 'stylesheet', href: 'css/animations.css', type: 'text/css'});
 
-      
+
 
       addTag('script', {src: 'js/google-code-prettify.js'}, sync);
       addTag('script', {src: 'js/marked.js'}, sync);
 
-      
+
         addTag('script', {src: 'js/angular.min.js'}, sync);
-      
-      
+
+
       addTag('script', {src: 'js/angular-bootstrap.js'}, sync);
       addTag('script', {src: 'js/angular-bootstrap-prettify.js'}, sync);
       addTag('script', {src: 'js/docs-setup.js'}, sync);
       addTag('script', {src: 'js/docs.js'}, sync);
-      
+
       function addTag(name, attributes, sync) {
         var el = document.createElement(name),
             attrName;
@@ -92,17 +92,17 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-          
-          
+
+
             <a class="navbar-brand"  href="/api"  class="brand">angularSails 0.10.1</a>
-          
+
     </div>
       <ul class="nav navbar-nav navbar-right">
         <li ng-repeat="(url, name) in sections" ng-class="{active: isActivePath(url)}">
           <a ng-href="{{url}}"><i class="icon-book icon-white"></i> {{name}}</a>
         </li>
       </ul>
-      
+
     </div>
   </nav>
 
@@ -133,7 +133,7 @@
     <div class="row">
       <div class="col-md-3">
         <form class="form-search" ng-submit="submitForm()">
-          
+
           <div class="dropdown search"
                ng-class="{open: focused && bestMatch.rank > 0 && bestMatch.page != currentPage}">
             <input type="text" ng-model="search" placeholder="search the docs"
@@ -144,7 +144,7 @@
               </li>
             </ul>
           </div>
-          
+
           <div class="spacer"></div>
 
           <ul class="nav nav-list well" ng-show="pages">
@@ -213,13 +213,13 @@
       </div>
       <div class="col-md-9">
 
-        <ul class="breadcrumb">
+        <!-- <ul class="breadcrumb">
           <li ng-repeat="crumb in breadcrumb">
             <span ng-hide="crumb.url">{{crumb.name}}</span>
             <a ng-show="crumb.url" href="{{crumb.url}}">{{crumb.name}}</a>
             <span ng-show="crumb.url" class="divider">/</span>
           </li>
-        </ul>
+        </ul> -->
 
         <div id="loading" ng-show="loading">Loading...</div>
 

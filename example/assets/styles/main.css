@@ -27,3 +27,7 @@ textarea {
 .delete-comment:hover {
   cursor: pointer;
 }
+
+.material-theme-sails {
+  background-color: #0b8fa2 !important;
+  color: #f1f1f1 !important; }
