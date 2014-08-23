@@ -12,7 +12,7 @@ exports.config = {
    'browserName': 'chrome',
    //'browserName': 'firefox'
   },
-  baseUrl:'http://127.0.0.1:1337',
+  baseUrl:'http://localhost:1337',
   // Spec patterns are relative to the current working directly when
   // protractor is called.
   specs: ['test/e2e/**/*.test.js'],
