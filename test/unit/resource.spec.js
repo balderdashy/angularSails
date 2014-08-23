@@ -182,28 +182,28 @@ it('should make requests',function(){
 
       })
 
-      describe('Instance.save()',function(){
+    //   describe('Instance.save()',function(){
 
-          it('save an existing record', function() {
+    //       it('save an existing record', function() {
 
-            mockIoSocket.expectEmit('GET', '/employee/123').respond(200,{id: 123, name: 'joe'});
-            mockIoSocket.expectEmit('PUT', '/employee').respond(200,{id: 1, name: 'joe1'});
-            var employeeInstance;
-            Employee.findOne({id: 123}).then(function(data){
-                employeeInstance = data;
-                //employeeInstance.save();
+    //         mockIoSocket.expectEmit('GET', '/employee/123').respond(200,{id: 123, name: 'joe'});
+    //         mockIoSocket.expectEmit('PUT', '/employee').respond(200,{id: 1, name: 'joe1'});
+    //         var employeeInstance;
+    //         Employee.findOne({id: 123}).then(function(data){
+    //             employeeInstance = data;
+    //             //employeeInstance.save();
 
-            })
+    //         })
 
-            mockIoSocket.flush();
+    //         mockIoSocket.flush();
 
-          });
+    //       });
 
-               })
+    // })
 
 
   })
-  })
+})
 //
 //
 // //

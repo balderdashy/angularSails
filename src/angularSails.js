@@ -22,7 +22,8 @@ angular.module('angularSails',['angularSails.config','angularSails.connection','
         NgSails.$get = NgSails;
 
         NgSails.config = {
-            models: {}
+            models: {},
+
         };
 
 

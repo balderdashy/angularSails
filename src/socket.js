@@ -17,7 +17,9 @@
 
 
 
-function $sailsSocketProvider() {
+
+
+angular.module('angularSails.io',['angularSails.connection','angularSails.backend']).provider('$sailsSocket',function $sailsSocketProvider() {
 
     'use strict';
     // NOTE:  The usage of window and document instead of $window and $document here is
@@ -1256,6 +1258,4 @@ function $sailsSocketProvider() {
 
 
         }];
-}
-
-angular.module('angularSails.io',['angularSails.connection','angularSails.backend']).provider('$sailsSocket',$sailsSocketProvider)
+})
