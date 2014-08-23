@@ -2,7 +2,10 @@ describe('angularSails E2E',function(){
 
 
 it('should find title element', function() {
-  browser.get('/');
+  
+  browser.get('/index.html');
+
+
 
   //browser.debugger();
 

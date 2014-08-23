@@ -9,7 +9,7 @@ exports.config = {
   capabilities: {
    // 'browserName': 'internet explorer', - special installation needed
    // 'version':'10',
-   'browserName': 'phantomjs',
+   'browserName': 'chrome',
    //'browserName': 'firefox'
   },
   baseUrl:'http://localhost:1337',
