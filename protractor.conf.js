@@ -12,7 +12,7 @@ exports.config = {
   baseUrl:'http://127.0.0.1:1337',
   // Spec patterns are relative to the current working directly when
   // protractor is called.
-  specs: ['test/protractor/protractor.js'],
+  specs: ['test/e2e/**.*.js'],
  
   // Options to be passed to Jasmine-node.
   jasmineNodeOpts: {
