@@ -108,166 +108,176 @@ provider('$sailsResource', function () {
         forEach = angular.forEach,
         extend = angular.extend,
         copy = angular.copy,
-        isFunction = angular.isFunction;
-
-
-        var SailsModel = {};
-
-
-        'use strict';
-
-
-
-
-
-
+        isFunction = angular.isFunction,
+        isString = angular.isString,
+        isObject = angular.isObject;
 
         var $sailsResourceMinErr = angular.$$minErr('$sailsResource');
 
+        function resourceFactory(model, controller, options) {
+
+            if(!model){
+                throw new Error('$sailsResource :: no model config declared!!!')
+            }
+
+            if(isString(model)){
+                model = {identity: model};
+            }
+
+            if(!model.identity){
+                throw new Error('$sailsResource :: model must have an identity defined!')
+            }
+
+            model.identity = model.identity.toLowerCase();
+
+            var paramDefaults = {id : '@id'}
+
+            var url = provider.config.basePath + model.identity.toLowerCase() + '/:id'
+
+            var route = new Route(url, {stripTrailingSlashes: true});
+
+            var actions = extend({}, provider.defaults.blueprints,model);
+
+            
+            function extractParams(data, actionParams) {
+                var ids = {};
+                actionParams = extend({}, paramDefaults, actionParams);
+                forEach(actionParams, function (value, key) {
+                    if (isFunction(value)) { value = value(); }
+                        ids[key] = value && value.charAt && value.charAt(0) == '@' ?
+                        lookupDottedPath(data, value.substr(1)) : value;
+                    });
+                    return ids;
+            }
+
+            function defaultResponseInterceptor(response) {
+                return response.resource;
+            }
 
 
+            /**
+            * SailsResource
+            */
 
-                function resourceFactory(modelIdentity, model) {
+            function SailsResource(data) {
 
-                    var paramDefaults = {id : '@id'}
+                
 
-                    var modelAttrs = model.attributes || {};
+            }
 
-                    var Model = angular.extend(SailsModel,{attributes: modelAttrs})
+            SailsResource.cache = $cacheFactory('sailsResource_' + model.identity);
 
-                    delete model.attributes;
-
-                    var url = provider.config.basePath + modelIdentity.toLowerCase() + '/:id/:populate'
-
-                    var route = new Route(url, {stripTrailingSlashes: true});
-
-                    var actions = extend({}, provider.defaults.blueprints,model);
-
-                    function extractParams(data, actionParams) {
-                        var ids = {};
-                        actionParams = extend({}, paramDefaults, actionParams);
-                        forEach(actionParams, function (value, key) {
-                            if (isFunction(value)) { value = value(); }
-                                ids[key] = value && value.charAt && value.charAt(0) == '@' ?
-                                lookupDottedPath(data, value.substr(1)) : value;
-                            });
-                            return ids;
-                        }
-
-                        function defaultResponseInterceptor(response) {
-                            return response.resource;
-                        }
+            SailsResource.connection = $sailsSocket;
 
 
-                        /**
-                        * SailsResource
-                        */
+            SailsResource.modelForId = function(id){
 
-                        function SailsResource(value) {
-                            shallowClearAndCopy(value || {}, this);
-                        }
+            }
 
 
-                        forEach(actions, function (action, name) {
-                          var hasBody = /^(POST|PUT|PATCH)$/i.test(action.method);
+                forEach(actions, function (action, name) {
+                  var hasBody = /^(POST|PUT|PATCH)$/i.test(action.method);
 
-                          SailsResource[name] = function (a1, a2, a3, a4) {
-                            var params = {}, data;
+                  SailsResource[name] = function (a1, a2, a3, a4) {
 
-                            if(!hasBody){
-                                params = a1;
-                            }
+                    var resource = this;
+                    var params = {}, data;
 
-                            else{
-                                data = a1;
-                            }
-
-
-                            var isInstanceCall = this instanceof SailsResource;
-                            var value = isInstanceCall ? data : (action.isArray ? [] : new SailsResource(data));
-                            var httpConfig = {};
-                            var responseInterceptor = action.interceptor && action.interceptor.response ||
-                              defaultResponseInterceptor;
-                            var responseErrorInterceptor = action.interceptor && action.interceptor.responseError ||
-                              undefined;
-
-                            forEach(action, function (value, key) {
-                              if (key != 'params' && key != 'isArray' && key != 'interceptor') {
-                                httpConfig[key] = copy(value);
-                              }
-                            });
-
-                            if (hasBody) httpConfig.data = data;
-                            route.setUrlParams(httpConfig,
-                              extend({}, extractParams(data, action.params || {}), params),
-                              action.url);
-
-                            var request = $sailsSocket(httpConfig).then(function (response) {
-                              var data = response.data;
-
-
-                              if (data) {
-                                // Need to convert action.isArray to boolean in case it is undefined
-                                // jshint -W018
-                                if (angular.isArray(data) !== (!!action.isArray)) {
-                                  throw $sailsResourceMinErr('badcfg',
-                                      'Error in resource configuration. Expected ' +
-                                      'response to contain an {0} but got an {1}','test');
-                                }
-                                // jshint +W018
-                                if (action.isArray) {
-                                  value.length = 0;
-                                  forEach(data, function (item) {
-                                    if (typeof item === "object") {
-                                      value.push(new SailsResource(item));
-                                    } else {
-                                      // Valid JSON values may be string literals, and these should not be converted
-                                      // into objects. These items will not have access to the Resource prototype
-                                      // methods, but unfortunately there
-                                      value.push(item);
-                                    }
-                                  });
-                                } else {
-                                  shallowClearAndCopy(data, value);
-
-                                }
-
-                                return value;
-                              }
-
-
-
-                          }, function (error) {
-
-                              return $q.reject(error);
-                            });
-
-                            return request;
-
-                          };
-
-
-
-                        });
-
-                        SailsResource.onUpdate = function(data){
-                            console.log(data);
-                        }
-
-
-                        SailsResource.prototype.destroy = function () {
-
-                        };
-
-                        SailsResource.bind = function (additionalParamDefaults) {
-                            return resourceFactory(url, extend({}, paramDefaults, additionalParamDefaults), actions);
-                        };
-
-                        SailsResource.listener = $sailsSocket.addListener(modelIdentity.toLowerCase(),SailsResource.onUpdate);
-
-                        return SailsResource;
+                    if(!hasBody){
+                        params = a1;
                     }
 
-                    return resourceFactory;
-                }];
-            });
+                    else{
+                        data = a1;
+                    }
+
+
+                    var isInstanceCall = this instanceof SailsResource;
+                    var value = isInstanceCall ? data : (action.isArray ? [] : new SailsResource(data));
+                    var httpConfig = {};
+                    var responseInterceptor = action.interceptor && action.interceptor.response ||
+                      defaultResponseInterceptor;
+                    var responseErrorInterceptor = action.interceptor && action.interceptor.responseError ||
+                      undefined;
+
+                    forEach(action, function (value, key) {
+                      if (key != 'params' && key != 'isArray' && key != 'interceptor') {
+                        httpConfig[key] = copy(value);
+                      }
+                    });
+
+                    if (hasBody) httpConfig.data = data;
+                    route.setUrlParams(httpConfig,
+                      extend({}, extractParams(data, action.params || {}), params),
+                      action.url);
+
+                    var request = resource.connection(httpConfig).then(function (response) {
+                      var data = response.data;
+
+
+                      if (data) {
+                        // Need to convert action.isArray to boolean in case it is undefined
+                        // jshint -W018
+                        if (angular.isArray(data) !== (!!action.isArray)) {
+                          throw $sailsResourceMinErr('badcfg',
+                              'Error in resource configuration. Expected ' +
+                              'response to contain an {0} but got an {1}','test');
+                        }
+                        // jshint +W018
+                        if (action.isArray) {
+                          value.length = 0;
+                          forEach(data, function (item) {
+                            if (typeof item === "object") {
+                              value.push(new SailsResource(item));
+                            } else {
+                              // Valid JSON values may be string literals, and these should not be converted
+                              // into objects. These items will not have access to the Resource prototype
+                              // methods, but unfortunately there
+                              value.push(item);
+                            }
+                          });
+                        } else {
+                          shallowClearAndCopy(data, value);
+
+                        }
+
+                        return value;
+                      }
+
+
+
+                  }, function (error) {
+
+                      return $q.reject(error);
+                    });
+
+                    return request;
+
+                  };
+
+
+
+                });
+
+                SailsResource.onDataNotify = function(data){
+                    console.log(data);
+                }
+
+
+                SailsResource.prototype.destroy = function () {
+
+                };
+
+                SailsResource.bind = function (additionalParamDefaults) {
+                    return resourceFactory(url, extend({}, paramDefaults, additionalParamDefaults), actions);
+                };
+
+                SailsResource.listener = $sailsSocket.addListener(model.identity,SailsResource.onDataNotify);
+
+                return SailsResource;
+            }
+
+            return resourceFactory;
+                
+    }];
+});

@@ -45,7 +45,6 @@ it('should make requests',function(){
 
 
     mockIoSocket.flush();
-    expect(response[0].id).toEqual(1);
 
 })
 

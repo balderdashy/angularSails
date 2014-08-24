@@ -1,21 +1,17 @@
-angular.module('angularSails.model', ['angularSails.route']).provider('$sailsModel',function(){
+angular.module('angularSails.model', []).provider('$sailsModel',function(){
 
-	this.$get = ['$sailsRoute',function($sailsRoute){
+	this.$get = [function(){
 
-		return function SailsModelFactory(modelConfig){
-
-			function SailsModel(resource,data){
+		function SailsModel(resource,data){
 
 				Object.defineProperty(this,'resource',{
 					value: resource,
 					enumerable: false
 				})
 
-			}
-
 		}
 
-
+		return SailsModel;
 
 
 	}]
