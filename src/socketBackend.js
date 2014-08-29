@@ -1,5 +1,5 @@
 'use strict';
-angular.module('angularSails.backend',[]).provider('$sailsConnection',function sailsBackendProvider() {
+angular.module('angularSails').provider('$sailsConnection',function sailsBackendProvider() {
 
 
         var config =  {

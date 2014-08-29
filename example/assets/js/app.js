@@ -1,36 +1,13 @@
 //create a new module
 angular.module('sailsDemoApp',['angularSails','ngAnimate','ngMaterial']).config(['$sailsProvider',function($sailsProvider){
 
+    $sailsProvider.model('Message',{})
+
+    $sailsProvider.model('User',{})
 
 
 
-// }]).factory('Message',['$sailsSocket',function($sailsSocket){
-//
-//     $sailsSocket.on('message',function(message){
-//         console.log(message)
-//     })
-//
-//     return {
-//         load: function(){
-//             return $sailsSocket.get('/message').then(function(res){
-//                 return res.data;
-//             })
-//         },
-//         send: function(newMessage){
-//             return $sailsSocket.post('/message',newMessage).then(function(res){
-//                 return res.data;
-//             })
-//         }
-//     }
 
-}]).factory('Message',['$sailsResource',function($sailsResource){
-
-    return $sailsResource('message',{
-        attributes: {
-            id: "string",
-            body: "text"
-        }
-    });
 
 }])
 
@@ -77,9 +54,17 @@ angular.module('sailsDemoApp',['angularSails','ngAnimate','ngMaterial']).config(
     // })
 
 
-    .controller('DemoCtrl',function(Message,$scope,$materialSidenav){
+    .controller('DemoCtrl',function(Message,User,$scope,$materialSidenav){
 
         $scope.tabs = [{name: 'home'},{name: 'docs'},{name: 'api'}]
+
+        User.find().then(function(users){
+            User.create({name: 'bob', password: 'bob'}).then(function(newUser){
+                console.log(newUser)
+            },function(err){
+                console.log(err)
+            })
+        })
 
         $scope.openLeftMenu = function() {
           $materialSidenav('left').toggle();

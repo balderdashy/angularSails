@@ -8,17 +8,29 @@
  * @description angularSails v0.10.0
  *
  **/
-angular.module('angularSails',['angularSails.config','angularSails.connection','angularSails.resource','angularSails.io','angularSails.backend']).provider('$sails',function NgSailsProvider(){
 
-        function NgSails($sailsResource){
+(function(angular,io){
+
+
+
+var $$NgSailsProvide;
+
+angular.module('angularSails',[],function($provide){
+
+    $$NgSailsProvide = $provide;
+
+}).provider('$sails',function NgSailsProvider(){
+
+
+        function NgSails(Injector){
+            
             var sails = this;
 
-            sails.$resource = $sailsResource;
-
+           
             return sails;
         }
 
-        NgSails.$inject = ['$sailsResource'];
+        NgSails.$inject = ['$injector'];
         NgSails.$get = NgSails;
 
         NgSails.config = {
@@ -31,15 +43,49 @@ angular.module('angularSails',['angularSails.config','angularSails.connection','
         //register a model
         NgSails.model = function(identity,modelConfig){
 
-            this.config.models[identity] = modelConfig;
+            $$NgSailsProvide.factory(identity,['$injector',function($injector){
+
+                var Model = $injector.get('$sailsModel');
+
+                return Model(identity,modelConfig);
+
+            }])
+
+        };
+
+        //register a model
+        NgSails.connection = function(identity,connectionConfig){
+
+            $$NgSailsProvide.factory(identity,['$injector',function($injector){
+
+                return modelConfig;
+
+            }])
+
+        };
+
+        //register a model
+        NgSails.route = function(identity,routeConfig){
+
+            $$NgSailsProvide.factory(identity,['$injector',function($injector){
+
+                return modelConfig;
+
+            }])
 
         };
         return NgSails;
 
 });
 
+
+})(angular,io);
+
+angular.module('angularSails').factory('SailsCollection',function(){
+
+})
 'use strict';
-angular.module('angularSails.config',[]).factory('$sailsSDKConfig',function(){
+angular.module('angularSails').factory('$sailsSDKConfig',function(){
 
     // Constants
   var CONNECTION_METADATA_PARAMS = {
@@ -76,7 +122,7 @@ angular.module('angularSails.config',[]).factory('$sailsSDKConfig',function(){
 *
 */
 
-angular.module('angularSails.connection', ['angularSails.config'])
+angular.module('angularSails')
 
 
 .provider('$sailsSocketFactory', function () {
@@ -171,32 +217,6 @@ angular.module('angularSails.connection', ['angularSails.config'])
     }];
 });
 
-angular.module('angularSails.model', ['angularSails.route']).provider('$sailsModel',function(){
-
-	this.$get = ['$sailsRoute',function($sailsRoute){
-
-		return function SailsModelFactory(modelConfig){
-
-			function SailsModel(resource,data){
-
-				Object.defineProperty(this,'resource',{
-					value: resource,
-					enumerable: false
-				})
-
-			}
-
-		}
-
-
-
-
-	}]
-
-
-
-
-})
 
 /**
 * @ngdoc overview
@@ -212,7 +232,7 @@ angular.module('angularSails.model', ['angularSails.route']).provider('$sailsMod
 
 /**
 * @ngdoc service
-* @name $sailsResource
+* @name $SailsModel
 *
 *
 * # angularSails.resource
@@ -222,9 +242,17 @@ angular.module('angularSails.model', ['angularSails.route']).provider('$sailsMod
 *
 */
 
-angular.module('angularSails.resource', ['ng','angularSails.route','angularSails.model']).
-provider('$sailsResource', function () {
+angular.module('angularSails').
+
+provider('$sailsModel', function () {
+    
     var provider = this;
+
+
+
+
+
+
 
     this.config = {
         basePath: '/',
@@ -289,7 +317,7 @@ provider('$sailsResource', function () {
 
     function lookupDottedPath(obj, path) {
         if (!isValidDottedPath(path)) {
-            throw $sailsResourceMinErr('badmember', 'Dotted member path "@{0}" is invalid.', 'bad path');
+            throw $SailsModelMinErr('badmember', 'Dotted member path "@{0}" is invalid.', 'bad path');
         }
         var keys = path.split('.');
         for (var i = 0, ii = keys.length; i < ii && obj !== undefined; i++) {
@@ -301,177 +329,298 @@ provider('$sailsResource', function () {
 
 
 
-    this.$get = ['$q', '$cacheFactory','$injector','$sailsSocket','$sailsRoute',function ($q, $cacheFactory,$injector,$sailsSocket,Route) {
+    this.$get = ['$q', '$cacheFactory','$injector','$sailsRoute',function ($q, $cacheFactory,$injector,Route) {
 
         var noop = angular.noop,
         forEach = angular.forEach,
         extend = angular.extend,
         copy = angular.copy,
-        isFunction = angular.isFunction;
+        isFunction = angular.isFunction,
+        isString = angular.isString,
+        isObject = angular.isObject;
+
+        var $SailsModelMinErr = angular.$$minErr('$SailsModel');
+
+        function resourceFactory(model, controller, options) {
 
 
-        var SailsModel = {};
+            var connection;
+
+            if(!model.connection && !model.provider){
+
+                connection = $injector.get('$sailsSocket');
+
+            }
+            else if(model.connection == '$http'){
+                connection = $injector.get('$http');
+            }
+
+            if(!model){
+                throw new Error('$SailsModel :: no model config declared!!!')
+            }
+
+            if(isString(model)){
+                model = {identity: model};
+            }
+
+            if(!model.identity){
+                throw new Error('$SailsModel :: model must have an identity defined!')
+            }
+
+            model.identity = model.identity.toLowerCase();
+
+            var paramDefaults = {id : '@id'}
+
+            var url = provider.config.basePath + model.identity.toLowerCase() + '/:id'
+
+            var route = new Route(url, {stripTrailingSlashes: true});
+
+            var actions = extend({}, provider.defaults.blueprints,model);
+
+            
+            function extractParams(data, actionParams) {
+                var ids = {};
+                actionParams = extend({}, paramDefaults, actionParams);
+                forEach(actionParams, function (value, key) {
+                    if (isFunction(value)) { value = value(); }
+                        ids[key] = value && value.charAt && value.charAt(0) == '@' ?
+                        lookupDottedPath(data, value.substr(1)) : value;
+                    });
+                    return ids;
+            }
+
+            function defaultResponseInterceptor(response) {
+                return response.resource;
+            }
 
 
-        'use strict';
+            /**
+            * SailsModel
+            */
+           
+            function SailsModel(data) {
+
+                var rec = this;
+
+                forEach(data,function(value,key){
+
+                    rec[key] = value;
+
+                })
+
+                
+
+            }
+
+            SailsModel.init = function(data){
+                var rec;
+                if(this.cache.get(data.id)){
+                    rec = this.cache.get(data.id);
+                    angular.extend(rec,data);
+                }
+                else{
+                    rec = new SailsModel(data);
+                    this.cache.put(rec.id,rec);
+                }
+                return rec;
+            }
+
+            SailsModel.cache = $cacheFactory('SailsModel_' + model.identity,{capacity: 100000});
+
+            SailsModel.connection = connection;
+
+            SailsModel.pubHandlers = {};
+
+        
+
+            forEach(actions, function (action, name) {
+              var hasBody = /^(POST|PUT|PATCH)$/i.test(action.method);
+
+              SailsModel[name] = function (a1, a2, a3, a4) {
+
+                var resource = this;
+                var params = {}, data;
+
+                if(!hasBody){
+                    params = a1;
+                }
+
+                else{
+                    data = a1;
+                }
 
 
+                var isInstanceCall = this instanceof SailsModel;
+                var value = isInstanceCall ? data : (action.isArray ? [] : new SailsModel(data));
+                var httpConfig = {};
+                var responseInterceptor = action.interceptor && action.interceptor.response ||
+                  defaultResponseInterceptor;
+                var responseErrorInterceptor = action.interceptor && action.interceptor.responseError ||
+                  undefined;
+
+                forEach(action, function (value, key) {
+                  if (key != 'params' && key != 'isArray' && key != 'interceptor') {
+                    httpConfig[key] = copy(value);
+                  }
+                });
+
+                if (hasBody) httpConfig.data = data;
+                route.setUrlParams(httpConfig,
+                  extend({}, extractParams(data, action.params || {}), params),
+                  action.url);
+
+                var request = resource.connection(httpConfig).then(function (response) {
+                  var data = response.data;
 
 
-
-
-
-        var $sailsResourceMinErr = angular.$$minErr('$sailsResource');
-
-
-
-
-                function resourceFactory(modelIdentity, model) {
-
-                    var paramDefaults = {id : '@id'}
-
-                    var modelAttrs = model.attributes || {};
-
-                    var Model = angular.extend(SailsModel,{attributes: modelAttrs})
-
-                    delete model.attributes;
-
-                    var url = provider.config.basePath + modelIdentity.toLowerCase() + '/:id/:populate'
-
-                    var route = new Route(url, {stripTrailingSlashes: true});
-
-                    var actions = extend({}, provider.defaults.blueprints,model);
-
-                    function extractParams(data, actionParams) {
-                        var ids = {};
-                        actionParams = extend({}, paramDefaults, actionParams);
-                        forEach(actionParams, function (value, key) {
-                            if (isFunction(value)) { value = value(); }
-                                ids[key] = value && value.charAt && value.charAt(0) == '@' ?
-                                lookupDottedPath(data, value.substr(1)) : value;
-                            });
-                            return ids;
+                  if (data) {
+                    // Need to convert action.isArray to boolean in case it is undefined
+                    // jshint -W018
+                    if (angular.isArray(data) !== (!!action.isArray)) {
+                      throw $SailsModelMinErr('badcfg',
+                          'Error in resource configuration. Expected ' +
+                          'response to contain an {0} but got an {1}','test');
+                    }
+                    // jshint +W018
+                    if (action.isArray) {
+                      value.length = 0;
+                      forEach(data, function (item) {
+                        if (typeof item === "object") {
+                          value.push(SailsModel.init(item));
+                        } else {
+                          // Valid JSON values may be string literals, and these should not be converted
+                          // into objects. These items will not have access to the Resource prototype
+                          // methods, but unfortunately there
+                          value.push(item);
                         }
+                      });
+                    } else {
+                      SailsModel.init(data);
 
-                        function defaultResponseInterceptor(response) {
-                            return response.resource;
-                        }
-
-
-                        /**
-                        * SailsResource
-                        */
-
-                        function SailsResource(value) {
-                            shallowClearAndCopy(value || {}, this);
-                        }
-
-
-                        forEach(actions, function (action, name) {
-                          var hasBody = /^(POST|PUT|PATCH)$/i.test(action.method);
-
-                          SailsResource[name] = function (a1, a2, a3, a4) {
-                            var params = {}, data;
-
-                            if(!hasBody){
-                                params = a1;
-                            }
-
-                            else{
-                                data = a1;
-                            }
-
-
-                            var isInstanceCall = this instanceof SailsResource;
-                            var value = isInstanceCall ? data : (action.isArray ? [] : new SailsResource(data));
-                            var httpConfig = {};
-                            var responseInterceptor = action.interceptor && action.interceptor.response ||
-                              defaultResponseInterceptor;
-                            var responseErrorInterceptor = action.interceptor && action.interceptor.responseError ||
-                              undefined;
-
-                            forEach(action, function (value, key) {
-                              if (key != 'params' && key != 'isArray' && key != 'interceptor') {
-                                httpConfig[key] = copy(value);
-                              }
-                            });
-
-                            if (hasBody) httpConfig.data = data;
-                            route.setUrlParams(httpConfig,
-                              extend({}, extractParams(data, action.params || {}), params),
-                              action.url);
-
-                            var request = $sailsSocket(httpConfig).then(function (response) {
-                              var data = response.data;
-
-
-                              if (data) {
-                                // Need to convert action.isArray to boolean in case it is undefined
-                                // jshint -W018
-                                if (angular.isArray(data) !== (!!action.isArray)) {
-                                  throw $sailsResourceMinErr('badcfg',
-                                      'Error in resource configuration. Expected ' +
-                                      'response to contain an {0} but got an {1}','test');
-                                }
-                                // jshint +W018
-                                if (action.isArray) {
-                                  value.length = 0;
-                                  forEach(data, function (item) {
-                                    if (typeof item === "object") {
-                                      value.push(new SailsResource(item));
-                                    } else {
-                                      // Valid JSON values may be string literals, and these should not be converted
-                                      // into objects. These items will not have access to the Resource prototype
-                                      // methods, but unfortunately there
-                                      value.push(item);
-                                    }
-                                  });
-                                } else {
-                                  shallowClearAndCopy(data, value);
-
-                                }
-
-                                return value;
-                              }
-
-
-
-                          }, function (error) {
-
-                              return $q.reject(error);
-                            });
-
-                            return request;
-
-                          };
-
-
-
-                        });
-
-                        SailsResource.onUpdate = function(data){
-                            console.log(data);
-                        }
-
-
-                        SailsResource.prototype.destroy = function () {
-
-                        };
-
-                        SailsResource.bind = function (additionalParamDefaults) {
-                            return resourceFactory(url, extend({}, paramDefaults, additionalParamDefaults), actions);
-                        };
-
-                        SailsResource.listener = $sailsSocket.addListener(modelIdentity.toLowerCase(),SailsResource.onUpdate);
-
-                        return SailsResource;
                     }
 
-                    return resourceFactory;
-                }];
+                    return value;
+                  }
+
+
+
+              }, function (error) {
+
+                  return $q.reject(error);
+                });
+
+                return request;
+
+              };
+
+
+
             });
 
-angular.module('angularSails.route',[]).factory('$sailsRoute',[function(){
+            SailsModel._streams = [];
+
+            SailsModel.stream = function(where){
+
+                var stream = new Array();
+
+                stream.add = function(rec){
+                    if(!stream.indexOf(rec) > -1){
+                        stream.push(rec);
+                    }
+                }
+
+                stream.bindScope = function(scope){
+                    scope.$on('$destroy',function(){
+                        SailsModel._streams.splice(SailsModel._streams.indexOf(stream),1);
+                    })
+                }
+
+                SailsModel._streams.push(stream);
+
+                SailsModel.find(where).then(function(records){
+                    forEach(records,stream.add);
+                });
+
+                return stream;
+            }
+
+            SailsModel.didReceivePublishMessage = function(pushMessage){
+                switch(pushMessage.verb){
+                    case 'created':
+                        SailsModel.didReceivePublishCreate(pushMessage);
+                    break;
+                    case 'updated':
+                        SailsModel.didReceivePublishUpdate(pushMessage);
+                    break;
+                }
+            }
+
+
+
+            SailsModel.didReceivePublishCreate = function(message){
+                
+                if(SailsModel.cache.get(message.id)){
+                    SailsModel.didReceivePublishUpdate(message);
+                    return;
+                };
+
+                var rec = SailsModel.init(message.data);
+
+                forEach(SailsModel._streams,function(stream){
+                    stream.add(rec);
+                })
+                
+            }
+
+            SailsModel.didReceivePublishUpdate = function(message){
+                var model = this;
+                
+                if(SailsModel.cache.get(message.id)){
+                    var rec = SailsModel.cache.get(message.id);
+                    angular.extend(rec,message.data);
+                }
+            }
+
+            SailsModel.didReceivePublishDestroy = function(message){
+
+                
+            }
+
+            SailsModel.didReceivePublishAdd = function(id,data){
+
+                
+            }
+
+            SailsModel.didReceivePublishRemove = function(id,data){
+
+                
+            }
+
+            SailsModel.prototype.destroy = function () {
+
+            };
+
+            SailsModel.prototype.onDataNotify = function () {
+
+            };
+
+            SailsModel.bind = function (additionalParamDefaults) {
+                return resourceFactory(url, extend({}, paramDefaults, additionalParamDefaults), actions);
+            }
+
+            connection.addListener(model.identity,SailsModel.didReceivePublishMessage.bind(SailsModel));
+
+
+
+            return SailsModel;
+        }
+
+        return resourceFactory;
+                
+    }];
+})
+
+angular.module('angularSails').factory('$sailsRoute',[function(){
 
 
 
@@ -611,7 +760,7 @@ angular.module('angularSails.route',[]).factory('$sailsRoute',[function(){
 
 
 
-angular.module('angularSails.io',['angularSails.connection','angularSails.backend']).provider('$sailsSocket',function $sailsSocketProvider() {
+angular.module('angularSails').provider('$sailsSocket',function $sailsSocketProvider() {
 
     'use strict';
     // NOTE:  The usage of window and document instead of $window and $document here is
@@ -1853,7 +2002,7 @@ angular.module('angularSails.io',['angularSails.connection','angularSails.backen
 })
 
 'use strict';
-angular.module('angularSails.backend',[]).provider('$sailsConnection',function sailsBackendProvider() {
+angular.module('angularSails').provider('$sailsConnection',function sailsBackendProvider() {
 
 
         var config =  {
@@ -1979,6 +2128,21 @@ angular.module('angularSails.backend',[]).provider('$sailsConnection',function s
 
 
 });
+
+
+angular.module('angularSails');
+
+
+angular.module('angularSails').factory('SailsExtend',function(){
+
+
+})
+
+angular.module('angularSails').factory('SailsInherits',function(){
+
+    
+})
+
 
 
 'use strict';

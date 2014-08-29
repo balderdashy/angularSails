@@ -18,9 +18,10 @@ module.exports = function(config) {
       'test/helpers/matchers.js',
       {pattern: 'lib/**/*.js', watched: true, included: true, served: true},
 
-      'src/**/*.js',
-      'test/unit/*.spec.js',
-      'test/mocks/mockSailsSocketFactory.js',
+      'src/angularSails.js',
+      'src/*.js',
+      'test/unit/angularSails.spec.js',
+      'test/mocks/mockSailsApp.js',
 
     ],
 

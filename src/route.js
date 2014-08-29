@@ -1,4 +1,4 @@
-angular.module('angularSails.route',[]).factory('$sailsRoute',[function(){
+angular.module('angularSails').factory('$sailsRoute',[function(){
 
 
 

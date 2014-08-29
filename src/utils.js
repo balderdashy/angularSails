@@ -1,3 +1,18 @@
+angular.module('angularSails');
+
+
+angular.module('angularSails').factory('SailsExtend',function(){
+
+
+})
+
+angular.module('angularSails').factory('SailsInherits',function(){
+
+    
+})
+
+
+
 'use strict';
 // NOTE:  The usage of window and document instead of $window and $document here is
 // deliberate.  This service depends on the specific behavior of anchor nodes created by the

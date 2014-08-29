@@ -11,7 +11,7 @@
 *
 */
 
-angular.module('angularSails.connection', ['angularSails.config'])
+angular.module('angularSails')
 
 
 .provider('$sailsSocketFactory', function () {

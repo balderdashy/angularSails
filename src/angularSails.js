@@ -8,17 +8,29 @@
  * @description angularSails v0.10.0
  *
  **/
-angular.module('angularSails',['angularSails.config','angularSails.connection','angularSails.resource','angularSails.io','angularSails.backend']).provider('$sails',function NgSailsProvider(){
 
-        function NgSails($sailsResource){
+(function(angular,io){
+
+
+
+var $$NgSailsProvide;
+
+angular.module('angularSails',[],function($provide){
+
+    $$NgSailsProvide = $provide;
+
+}).provider('$sails',function NgSailsProvider(){
+
+
+        function NgSails(Injector){
+            
             var sails = this;
 
-            sails.$resource = $sailsResource;
-
+           
             return sails;
         }
 
-        NgSails.$inject = ['$sailsResource'];
+        NgSails.$inject = ['$injector'];
         NgSails.$get = NgSails;
 
         NgSails.config = {
@@ -31,9 +43,40 @@ angular.module('angularSails',['angularSails.config','angularSails.connection','
         //register a model
         NgSails.model = function(identity,modelConfig){
 
-            this.config.models[identity] = modelConfig;
+            $$NgSailsProvide.factory(identity,['$injector',function($injector){
+
+                var Model = $injector.get('$sailsModel');
+
+                return Model(identity,modelConfig);
+
+            }])
+
+        };
+
+        //register a model
+        NgSails.connection = function(identity,connectionConfig){
+
+            $$NgSailsProvide.factory(identity,['$injector',function($injector){
+
+                return modelConfig;
+
+            }])
+
+        };
+
+        //register a model
+        NgSails.route = function(identity,routeConfig){
+
+            $$NgSailsProvide.factory(identity,['$injector',function($injector){
+
+                return modelConfig;
+
+            }])
 
         };
         return NgSails;
 
 });
+
+
+})(angular,io);
