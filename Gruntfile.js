@@ -53,7 +53,7 @@ module.exports = function(grunt) {
 
         concat: {
             sails: {
-                src: ['<%= app.src %>/*.js'],
+                src: ['<%= app.lib %>/socket.io.min.js','<%= app.src %>/angularSails.js','<%= app.src %>/*.js','<%= app.src %>/utils.js'],
                 dest: '<%= app.dist %>/angularSails.js'
             }
 

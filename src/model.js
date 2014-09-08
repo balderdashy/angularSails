@@ -276,6 +276,7 @@ provider('$sailsModel', function () {
                         }
                       });
                     } else {
+                        console.log('init')
                       SailsModel.init(data);
 
                     }

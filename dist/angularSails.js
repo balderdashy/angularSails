@@ -497,6 +497,7 @@ provider('$sailsModel', function () {
                         }
                       });
                     } else {
+                        console.log('init')
                       SailsModel.init(data);
 
                     }
@@ -2030,7 +2031,7 @@ angular.module('angularSails').provider('$sailsConnection',function sailsBackend
 
         var deferredSocket = $q.defer();
 
-        var socket = config.ioSocket || $sailsSocketFactory();
+        var socket = config.ioSocket || $sailsSocketFactory(config);
 
         if(socket.connected){
             deferredSocket.resolve(socket);

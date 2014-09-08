@@ -79,4 +79,3 @@ angular.module('angularSails',[],function($provide){
 });
 
 
-})(angular,io);
