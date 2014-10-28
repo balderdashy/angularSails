@@ -843,7 +843,11 @@ function createSailsBackend($browser, $window, $injector, $q, $timeout){
         url = url || $browser.url();
 
 
-        $window.io.socket[method.toLowerCase()](url,fromJson(post),socketResponse);
+        var options = {
+            data: fromJson(post),
+            headers: headers
+        };
+        $window.io.socket[method.toLowerCase()](url, options, socketResponse);
 
     }
 
