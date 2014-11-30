@@ -4,3 +4,4 @@ npm-debug.log
 
 .grunt/grunt-gh-pages/gh-pages/src/
 example/assets/components
+vendor

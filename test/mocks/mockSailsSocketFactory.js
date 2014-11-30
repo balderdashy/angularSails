@@ -56,7 +56,7 @@ angular.module('angularSails.mocks',[]).factory('$sailsSocketFactory',['$rootSco
 
 
     function mockSocketFactory(url){
-        console.log('init mock socket')
+        //console.log('init mock socket')
         var socket =  new MockIOSocket(url);
 
         socket.connected = true;
@@ -78,7 +78,7 @@ angular.module('angularSails.mocks',[]).factory('$sailsSocketFactory',['$rootSco
                     }
                 }
             })
-            
+
 
         }
     }

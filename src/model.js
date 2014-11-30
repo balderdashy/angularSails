@@ -26,7 +26,7 @@
 angular.module('angularSails').
 
 provider('$sailsModel', function () {
-    
+
     var provider = this;
 
 
@@ -158,7 +158,7 @@ provider('$sailsModel', function () {
 
             var actions = extend({}, provider.defaults.blueprints,model);
 
-            
+
             function extractParams(data, actionParams) {
                 var ids = {};
                 actionParams = extend({}, paramDefaults, actionParams);
@@ -178,18 +178,16 @@ provider('$sailsModel', function () {
             /**
             * SailsModel
             */
-           
+
             function SailsModel(data) {
 
                 var rec = this;
 
                 forEach(data,function(value,key){
-
-                    rec[key] = value;
-
-                })
-
-                
+                  rec[key] = value;
+                });
+                console.log(rec);
+                return rec;
 
             }
 
@@ -212,7 +210,7 @@ provider('$sailsModel', function () {
 
             SailsModel.pubHandlers = {};
 
-        
+
 
             forEach(actions, function (action, name) {
               var hasBody = /^(POST|PUT|PATCH)$/i.test(action.method);
@@ -276,8 +274,8 @@ provider('$sailsModel', function () {
                         }
                       });
                     } else {
-                        console.log('init')
-                      SailsModel.init(data);
+                      
+                      value = SailsModel.init(data);
 
                     }
 
@@ -340,7 +338,7 @@ provider('$sailsModel', function () {
 
 
             SailsModel.didReceivePublishCreate = function(message){
-                
+
                 if(SailsModel.cache.get(message.id)){
                     SailsModel.didReceivePublishUpdate(message);
                     return;
@@ -351,12 +349,12 @@ provider('$sailsModel', function () {
                 forEach(SailsModel._streams,function(stream){
                     stream.add(rec);
                 })
-                
+
             }
 
             SailsModel.didReceivePublishUpdate = function(message){
                 var model = this;
-                
+
                 if(SailsModel.cache.get(message.id)){
                     var rec = SailsModel.cache.get(message.id);
                     angular.extend(rec,message.data);
@@ -365,17 +363,17 @@ provider('$sailsModel', function () {
 
             SailsModel.didReceivePublishDestroy = function(message){
 
-                
+
             }
 
             SailsModel.didReceivePublishAdd = function(id,data){
 
-                
+
             }
 
             SailsModel.didReceivePublishRemove = function(id,data){
 
-                
+
             }
 
             SailsModel.prototype.destroy = function () {
@@ -398,6 +396,6 @@ provider('$sailsModel', function () {
         }
 
         return resourceFactory;
-                
+
     }];
 })

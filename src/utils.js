@@ -8,7 +8,7 @@ angular.module('angularSails').factory('SailsExtend',function(){
 
 angular.module('angularSails').factory('SailsInherits',function(){
 
-    
+
 })
 
 
@@ -496,7 +496,3 @@ function arrayRemove(array, value) {
         array.splice(index, 1);
     return value;
 }
-
-
-
-})(angular,io);

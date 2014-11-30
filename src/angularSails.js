@@ -9,7 +9,6 @@
  *
  **/
 
-(function(angular,io){
 
 
 
@@ -23,10 +22,10 @@ angular.module('angularSails',[],function($provide){
 
 
         function NgSails(Injector){
-            
+
             var sails = this;
 
-           
+
             return sails;
         }
 
@@ -77,5 +76,3 @@ angular.module('angularSails',[],function($provide){
         return NgSails;
 
 });
-
-
