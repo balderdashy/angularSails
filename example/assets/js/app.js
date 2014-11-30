@@ -54,7 +54,7 @@ angular.module('sailsDemoApp',['angularSails','ngAnimate','ngMaterial']).config(
     // })
 
 
-    .controller('DemoCtrl',function(Message,User,$scope,$materialSidenav){
+    .controller('DemoCtrl',function(Message,User,$scope){
 
         $scope.tabs = [{name: 'home'},{name: 'docs'},{name: 'api'}]
 
@@ -66,10 +66,7 @@ angular.module('sailsDemoApp',['angularSails','ngAnimate','ngMaterial']).config(
             })
         })
 
-        $scope.openLeftMenu = function() {
-          $materialSidenav('left').toggle();
-        };
-
+        
 
         Message.find().then(function(messages){
             console.log(messages)
@@ -87,17 +84,4 @@ angular.module('sailsDemoApp',['angularSails','ngAnimate','ngMaterial']).config(
 
         }
 
-    }).directive('ig', function() {
-  return {
-    restrict: 'E',
-    replace: true,
-    scope: {
-      fid: '@'
-    },
-    template:
-      '<material-input-group>' +
-        '<label for="{{fid}}">Description</label>' +
-        '<input id="{{fid}}" type="text" ng-model="data.description">' +
-      '</material-input-group>'
-  };
-});
+    })
