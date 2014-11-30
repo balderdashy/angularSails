@@ -1,79 +1,127 @@
 'use strict';
-
-function createSailsBackend($browser, $window, $injector, $q, $timeout){
-
+angular.module('angularSails').provider('$sailsConnection',function sailsBackendProvider() {
 
 
+        var config =  {
+            url: 'http://localhost:1337',
+            autoConnect: true,
+            ioSocket: undefined
 
-    if(!$window.io){
-        throw new Error('socket.io client not found')
-    }
+        }
 
-    if(!$window.io.sails){
-        throw new Error('sails.io client not found')
-    }
+        this.config = config;
 
-    if(!$window.io.socket){
-        console.warn('no connected socket...')
-    }
+        function createSailsBackend($sailsSocketFactory,$browser, $window, $injector, $q, $timeout){
 
-
-    var tick = function (socket, callback) {
-        return callback ? function () {
-            var args = arguments;
-            $timeout(function () {
-                callback.apply(socket, args);
-            }, 0);
-        } : angular.noop;
-    };
+        var tick = function (socket, callback) {
+            return callback ? function () {
+                var args = arguments;
+                $timeout(function () {
+                    callback.apply(socket, args);
+                }, 0);
+            } : angular.noop;
+        };
 
 
-    function connection(method, url, post, callback, headers, timeout, withCredentials, responseType){
+        var deferredSocket = $q.defer();
 
+        var socket = config.ioSocket || $sailsSocketFactory(config);
 
-
-        function socketResponse(body,jwr){
-
-            callback(jwr.statusCode,body);
-            //status, response, headersString, statusText
+        if(socket.connected){
+            deferredSocket.resolve(socket);
+        }
+        else{
+            socket.on('connect',function(){
+                deferredSocket.resolve(socket);
+            });
         }
 
 
-        url = url || $browser.url();
 
 
-        $window.io.socket[method.toLowerCase()](url,fromJson(post),socketResponse);
+        function openConnection(){
+            return deferredSocket.promise;
+        }
+
+
+        function connection(url,options){
+
+        }
+
+        connection._listeners = [];
+        connection.connect = function(){
+            return openConnection.promise;
+        }
+
+        connection.request = function(method, url, post, callback, headers, timeout, withCredentials, responseType){
+
+
+
+
+
+            function socketResponse(response){
+                callback(response.statusCode || 200,response.body || {}, response.headers || {}, response.statusText);
+                //status, response, headersString, statusText
+            }
+
+
+
+
+            url = url || $browser.url();
+
+
+            openConnection().then(function(ioSocket){
+
+                ioSocket.emit(method.toLowerCase(),{ url: url, data: fromJson(post) },socketResponse);
+            });
+
+        }
+
+
+        /**
+        * Adds a notification listener
+        * @param {callback} callback The callback to receive updates from the connection
+        * @returns {handle} The callback handle
+        */
+        connection.addListener = function (eventName,callback) {
+            return socket.addListener(eventName,callback);
+        };
+
+        /**
+        * Removes a notification listener
+        * @param {handle} handle The handle for the callback
+        */
+        connection.removeListener = function (eventName,callback) {
+            return socket.removeListener(eventName,callback)
+        };
+
+
+        return connection;
 
     }
 
-    //TODO normalize http paths to event names
-    connection.subscribe = function(event,handler){
-        $window.io.socket.on(event,tick($window.io.socket,handler));
-    }
+    /**
+    * @ngdoc service
+    * @name ngsails.$sailsSocketBackend
+    * @requires $window
+    * @requires $document
+    *
+    * @description
+    * Service used by the $sailsSocket that delegates to a
+    * Socket.io connection (or in theory, any connection type eventually)
+    *
+    * You should never need to use this service directly, instead use the higher-level abstractions:
+    * $sailsSocket or $sailsResource.
+    *
+    * During testing this implementation is swapped with $sailsMockBackend
+    *  which can be trained with responses.
+    */
 
-    return connection;
-
-}
-
-/**
- * @ngdoc service
- * @name ngsails.$sailsSocketBackend
- * @requires $window
- * @requires $document
- *
- * @description
- * Service used by the $sailsSocket that delegates to a
- * Socket.io connection (or in theory, any connection type eventually)
- *
- * You should never need to use this service directly, instead use the higher-level abstractions:
- * $sailsSocket or $sailsResource.
- *
- * During testing this implementation is swapped with $sailsMockBackend
- *  which can be trained with responses.
- */
-function sailsBackendProvider() {
-    this.$get = ['$browser', '$window','$injector', '$q','$timeout', function($browser, $window, $injector, $q,$timeout) {
-        return createSailsBackend($browser,$window, $injector, $q,$timeout);
+    this.$get = ['$sailsSocketFactory','$browser', '$window','$injector', '$q','$timeout', function($sailsSocketFactory,$browser, $window, $injector, $q,$timeout) {
+        return createSailsBackend($sailsSocketFactory,$browser,$window, $injector, $q,$timeout);
     }];
-}
 
+
+
+
+});

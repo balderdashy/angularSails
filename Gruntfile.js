@@ -1,6 +1,6 @@
 /**
- * Grunt automation.
- */
+* Grunt automation.
+*/
 module.exports = function(grunt) {
 
     var getTime = function(){
@@ -16,29 +16,54 @@ module.exports = function(grunt) {
 
         app: {
             src: 'src',
+            lib: 'lib',
             dist: 'dist',
             vendor: 'vendor',
             tests: 'tests',
-            example: 'example/assets/',
+            example: 'example/assets',
             pkg: grunt.file.readJSON('bower.json')
         },
 
         ngdocs: {
-            all: ['dist/ngsails.js']
+            options: {
+                dest: 'docs',
+                //scripts: ['../.min.js'],
+                html5Mode: false,
+                startPage: '/api',
+                title: "angularSails 0.10.1",
+            //    image: "assets/images/angularSailsLogoSmall.png",
+            //    navTemplate: "assets/templates/navTemplate.html",
+                imageLink: "/api",
+                titleLink: "/api",
+                bestMatch: true,
+                analytics: {
+                    account: 'UA-53843607-2',
+                    domainName: 'ngsails.herokuapp.com'
+                }
+            },
+            tutorial: {
+                src: ['content/tutorial/*.ngdoc'],
+                title: 'Tutorial'
+            },
+            api: {
+                src: ['dist/angularSails.js'],
+                title: 'API Documentation'
+            }
         },
 
         concat: {
             sails: {
-                src: ['module.prefix','<%= app.src %>/*.js','module.suffix'],
-                dest: '<%= app.dist %>/ngsails.io.js'
+                src: ['<%= app.lib %>/socket.io.min.js','<%= app.src %>/angularSails.js','<%= app.src %>/*.js','<%= app.src %>/utils.js'],
+                dest: '<%= app.dist %>/angularSails.js'
             }
+
 
         },
 
         copy: {
             example: {
-                src: '<%= app.dist %>/*.js',
-                dest: '<%= app.example %>/js/angular-sails/',
+                src: ['<%= app.lib %>/*.js','<%= app.dist %>/*.js',],
+                dest: '<%= app.example %>/js/',
                 flatten : true,
                 expand : true
             },
@@ -54,9 +79,9 @@ module.exports = function(grunt) {
             options: {
                 sourceMap: true,
                 banner: '/*\n'
-                    + '  <%= app.pkg.name %> <%= app.pkg.version %>-build' + getTime() + '\n'
-                    + '  Built with <3 by Balderdashy'
-                    + '*/'
+                + '  <%= app.pkg.name %> <%= app.pkg.version %>-build' + getTime() + '\n'
+                + '  Built with <3 by Balderdashy'
+                + '*/'
             },
             dist: {
                 files: {
@@ -73,8 +98,8 @@ module.exports = function(grunt) {
             },
 
             all: [
-                '<%= app.src %>/**/*.js',
-                '<%= app.tests %>/**/*.spec.js'
+            '<%= app.src %>/**/*.js',
+            '<%= app.tests %>/**/*.spec.js'
             ]
         },
 
@@ -104,29 +129,43 @@ module.exports = function(grunt) {
             postcompile: {
                 configFile: 'karma.postcompile.conf.js',
             }
-        }
+        },
+
+        ngAnnotate: {
+            options: {
+                add: true
+                // Task-specific options go here.
+            },
+            src: {
+                files: [{
+                    src: ['<%= app.src %>/**/*.js'],
+                }]
+                // Target-specific file lists and/or options go here.
+            }
+        },
 
     });
 
-    grunt.loadNpmTasks('grunt-ngdocs');
+    grunt.loadNpmTasks('grunt-ngdocs-bs3');
     grunt.loadNpmTasks('grunt-contrib-copy');
+    grunt.loadNpmTasks('grunt-ng-annotate');
 
     // Registered tasks.
-    grunt.registerTask('default', ['concat:sails']);
+    grunt.registerTask('default', ['concat:sails','copy:example']);
 
     grunt.registerTask('docs', ['ngdocs']);
 
-//
-//  grunt.registerTask('dev', ['watch']);
-//
-//  grunt.registerTask('test', ['karma:precompile']);
-//
-//  grunt.registerTask('build', [
-////    'jshint',
-////    'karma:precompile',
-////    'concat',
-//    'uglify',
-//    'copy',
-//    'karma:postcompile'
-//  ]);
+    //
+    //  grunt.registerTask('dev', ['watch']);
+    //
+    grunt.registerTask('test', ['karma:precompile']);
+    //
+    grunt.registerTask('build', [
+    //    'jshint',
+    'karma:precompile',
+    'concat:sails',
+    'uglify',
+    'copy',
+    'karma:postcompile'
+    ]);
 };

@@ -1,0 +1,75 @@
+20140814 115028.514 [21057] CLI warning, open file limit 256 is too low.
+20140814 115028.514 [21057] CLI Sauce Labs recommends setting it to at least 8000.
+20140814 115028.514 [21057] CLI Starting up; pid 21057
+20140814 115028.514 [21057] CLI Sauce Connect 4.3, build 1284 8da8e67
+20140814 115028.514 [21057] CLI Command line arguments: /Users/robwormald/Dev/Sails/angularSails/node_modules/karma-sauce-launcher/node_modules/sauce-connect-launcher/sc/sc-4.3-osx/bin/sc -u innitapps -k **** -P 5757 -l sauce_connect.log --tunnel-identifier karma1408035025 --readyfile /var/folders/g4/nfjvk1lj5g58jl8zxvghbk1w0000gn/T/sc-launcher-readyfile
+20140814 115028.515 [21057] CLI Using no proxy for connecting to Sauce Labs REST API.
+20140814 115030.262 [21057] CLI Started scproxy on port 55058.
+20140814 115030.262 [21057] CLI Please wait for 'you may start your tests' to start your tests.
+20140814 115030.262 [21057] CLI Starting secure remote tunnel VM...
+20140814 115037.495 [21057] CLI Secure remote tunnel VM provisioned.
+20140814 115037.495 [21057] CLI Tunnel ID: f4c05a02fa1d4679bacd94dd7642c6f5
+20140814 115038.942 [21057] CLI Secure remote tunnel VM is now: booting
+20140814 115109.157 [21057] CLI Secure remote tunnel VM is now: running
+20140814 115109.157 [21057] CLI Remote tunnel host is: maki77064.miso.saucelabs.com
+20140814 115109.157 [21057] CLI Using no proxy for connecting to tunnel VM.
+20140814 115109.157 [21057] CLI Starting Selenium listener...
+20140814 115109.157 [21057] CLI Establishing secure TLS connection to tunnel...
+20140814 115109.157 [21057] CLI Selenium listener started on port 5757.
+20140814 115113.516 [21057] CLI Sauce Connect is up, you may start your tests.
+20140814 115113.516 [21057] CLI Connection established.
+20140814 115143.351 [21057] CLI Cleaning up.
+20140814 115143.351 [21057] CLI Finished! Deleting tunnel.
+20140814 115145.463 [21057] CLI Removing named tunnel karma1408035025 (f4c05a02fa1d4679bacd94dd7642c6f5).
+20140814 115149.621 [21057] CLI Goodbye.
+20140814 115300.682 [21200] CLI warning, open file limit 256 is too low.
+20140814 115300.682 [21200] CLI Sauce Labs recommends setting it to at least 8000.
+20140814 115300.682 [21200] CLI Starting up; pid 21200
+20140814 115300.682 [21200] CLI Sauce Connect 4.3, build 1284 8da8e67
+20140814 115300.682 [21200] CLI Command line arguments: /Users/robwormald/Dev/Sails/angularSails/node_modules/karma-sauce-launcher/node_modules/sauce-connect-launcher/sc/sc-4.3-osx/bin/sc -u innitapps -k **** -P 5757 -l sauce_connect.log --tunnel-identifier karma1408035181 --readyfile /var/folders/g4/nfjvk1lj5g58jl8zxvghbk1w0000gn/T/sc-launcher-readyfile
+20140814 115300.682 [21200] CLI Using no proxy for connecting to Sauce Labs REST API.
+20140814 115302.012 [21200] CLI Started scproxy on port 55144.
+20140814 115302.012 [21200] CLI Please wait for 'you may start your tests' to start your tests.
+20140814 115302.012 [21200] CLI Starting secure remote tunnel VM...
+20140814 115306.756 [21200] CLI Secure remote tunnel VM provisioned.
+20140814 115306.756 [21200] CLI Tunnel ID: 78e032995f06455785d3d5bea88145da
+20140814 115309.440 [21200] CLI Secure remote tunnel VM is now: booting
+20140814 115348.628 [21200] CLI Secure remote tunnel VM is now: running
+20140814 115348.628 [21200] CLI Remote tunnel host is: maki77064.miso.saucelabs.com
+20140814 115348.628 [21200] CLI Using no proxy for connecting to tunnel VM.
+20140814 115348.628 [21200] CLI Starting Selenium listener...
+20140814 115348.628 [21200] CLI Establishing secure TLS connection to tunnel...
+20140814 115348.629 [21200] CLI Selenium listener started on port 5757.
+20140814 115351.178 [21200] CLI Sauce Connect is up, you may start your tests.
+20140814 115351.178 [21200] CLI Connection established.
+20140814 115422.498 [21200] CLI Cleaning up.
+20140814 115422.498 [21200] CLI Finished! Deleting tunnel.
+20140814 115422.992 [21200] CLI Removing named tunnel karma1408035181 (78e032995f06455785d3d5bea88145da).
+20140814 115425.611 [21200] CLI Goodbye.
+20140814 115528.526 [21230] CLI warning, open file limit 256 is too low.
+20140814 115528.526 [21230] CLI Sauce Labs recommends setting it to at least 8000.
+20140814 115528.526 [21230] CLI Starting up; pid 21230
+20140814 115528.526 [21230] CLI Sauce Connect 4.3, build 1284 8da8e67
+20140814 115528.526 [21230] CLI Command line arguments: /Users/robwormald/Dev/Sails/angularSails/node_modules/karma-sauce-launcher/node_modules/sauce-connect-launcher/sc/sc-4.3-osx/bin/sc -u innitapps -k **** -P 5757 -l sauce_connect.log --tunnel-identifier karma1408035329 --readyfile /var/folders/g4/nfjvk1lj5g58jl8zxvghbk1w0000gn/T/sc-launcher-readyfile
+20140814 115528.527 [21230] CLI Using no proxy for connecting to Sauce Labs REST API.
+20140814 115529.846 [21230] CLI Started scproxy on port 55276.
+20140814 115529.846 [21230] CLI Please wait for 'you may start your tests' to start your tests.
+20140814 115529.846 [21230] CLI Starting secure remote tunnel VM...
+20140814 115534.422 [21230] CLI Secure remote tunnel VM provisioned.
+20140814 115534.422 [21230] CLI Tunnel ID: b791b76a7d95474e8197c952c8689317
+20140814 115537.892 [21230] CLI Secure remote tunnel VM is now: booting
+20140814 115603.408 [21230] CLI Secure remote tunnel VM is now: running
+20140814 115603.408 [21230] CLI Remote tunnel host is: maki76139.miso.saucelabs.com
+20140814 115603.408 [21230] CLI Using no proxy for connecting to tunnel VM.
+20140814 115603.408 [21230] CLI Starting Selenium listener...
+20140814 115603.408 [21230] CLI Establishing secure TLS connection to tunnel...
+20140814 115603.409 [21230] CLI Selenium listener started on port 5757.
+20140814 115607.768 [21230] CLI Sauce Connect is up, you may start your tests.
+20140814 115607.768 [21230] CLI Connection established.
+20140814 115630.001 [21230] KGP warning: no keepalive ack for > 5s
+20140814 115630.718 [21230] CLI Disconnected - you are now offline.
+20140814 115631.719 [21230] CLI Connection established.
+20140814 115636.037 [21230] CLI Cleaning up.
+20140814 115636.037 [21230] CLI Finished! Deleting tunnel.
+20140814 115636.879 [21230] CLI Removing named tunnel karma1408035329 (b791b76a7d95474e8197c952c8689317).
+20140814 115639.410 [21230] CLI Goodbye.

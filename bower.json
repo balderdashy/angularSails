@@ -28,7 +28,9 @@
   },
   "dependencies": {
     "angular": "~1.2.14",
-      "sails.io.js" : "latest",
+    "socket.io-client": "0.9.17"
+  },
+  "resolutions": {
     "lodash": "~2.4.1"
   }
 }
