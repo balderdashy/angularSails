@@ -1,5 +1,8 @@
 {
   "generators": {
-    "modules": {}
+    "modules": {},
+    "hooks" : {
+      "grunt" : false
+}
   }
 }
