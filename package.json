@@ -8,7 +8,8 @@
   },
   "scripts": {
     "test": "karma run",
-    "start": "cd example && npm install && bower install && node app"
+    "install": "cd example && npm install && bower install",
+    "start": "node example/app"
   },
   "repository": {
     "type": "git",
