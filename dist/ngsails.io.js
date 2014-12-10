@@ -850,6 +850,7 @@ function createSailsBackend($browser, $window, $injector, $q, $timeout){
     //TODO normalize http paths to event names
     connection.subscribe = function(event,handler){
         $window.io.socket.on(event,tick($window.io.socket,handler));
+        return connection;
     }
 
     return connection;
