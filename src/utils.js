@@ -272,7 +272,7 @@ function isObject(value){return value != null && typeof value === 'object';}
 function isString(value){return typeof value === 'string';}
 function isNumber(value){return typeof value === 'number';}
 function isDate(value){
-    return toString.call(value) === '[object Date]';
+    return {}.toString.call(value) === '[object Date]';
 }
 function isFunction(value){return typeof value === 'function';}
 
@@ -280,12 +280,12 @@ function isScope(obj) {
     return obj && obj.$evalAsync && obj.$watch;
 }
 function isFile(obj) {
-    return toString.call(obj) === '[object File]';
+    return {}.toString.call(obj) === '[object File]';
 }
 
 
 function isBlob(obj) {
-    return toString.call(obj) === '[object Blob]';
+    return {}.toString.call(obj) === '[object Blob]';
 }
 
 
@@ -294,7 +294,7 @@ function isBoolean(value) {
 }
 
 function isArray(value) {
-    return toString.call(value) === '[object Array]';
+    return {}.toString.call(value) === '[object Array]';
 }
 
 
@@ -441,4 +441,3 @@ function arrayRemove(array, value) {
         array.splice(index, 1);
     return value;
 }
-
