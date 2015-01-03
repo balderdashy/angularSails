@@ -1,6 +1,6 @@
 {
   "name": "angularSails",
-  "version": "0.0.0",
+  "version": "v0.10.0-pre",
   "description": "SailsJS SDK for AngularJS",
   "main": "index.js",
   "directories": {
