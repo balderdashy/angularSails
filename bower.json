@@ -23,14 +23,9 @@
     "test",
     "tests"
   ],
-  "devDependencies": {
-    "angular-mocks": "~1.2.14"
-  },
+
   "dependencies": {
     "angular": "~1.2.14",
-    "socket.io-client": "0.9.17"
-  },
-  "resolutions": {
-    "lodash": "~2.4.1"
+    "socket.io-client": "~1.2.1"
   }
 }

@@ -1,0 +1,22 @@
+{
+  "name": "ng-sails-template",
+  "version": "0.11.0",
+  "homepage": "https://github.com/balderdashy/angularSails",
+  "authors": [
+    "Rob Wormald <rob."
+  ],
+  "main": "app/main.js",
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "vendor",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "socket.io-client": "~1.2.1"
+  }
+}
