@@ -48,7 +48,9 @@ function createSailsBackend($browser, $window, $injector, $q, $timeout){
 
     //TODO normalize http paths to event names
     connection.subscribe = function(event,handler){
-        $window.io.socket.on(event,tick($window.io.socket,handler));
+        var callback = tick($window.io.socket,handler);
+        $window.io.socket.on(event,callback);
+        return angular.bind($window.io.socket, $window.io.socket.removeListener, event, callback);
     }
 
     return connection;
