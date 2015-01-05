@@ -25,12 +25,19 @@ function headers(xhr) {
   return head
 }
 
-function normalizeMethod(method,transport) {
+function normalizeMethod(method,downcase) {
 
-  if(transport && transport == 'io'){
+  if(downcase){
     return method.toLowerCase();
   }
 
   var upcased = method.toUpperCase()
   return (methods.indexOf(upcased) > -1) ? upcased : method
+}
+
+export {
+  methods,
+  decode,
+  headers,
+  normalizeMethod
 }

@@ -2,46 +2,64 @@ const SAILS_SDK_VERSION = '0.11.0';
 
 export class SocketBackend {
 
-  constructor(io){
-    this.io = io;
-    this.sockets = {};
+  constructor($q,$window,$sailsConfig){
+    this._$q = $q;
+    this._io = $window.io;
+    this._socket = undefined;
   }
 
   connect(url,options){
+    return this._connect(url,options);
+  }
+
+  _connect(url,options){
     var backend = this;
 
-    if(backend.sockets[url] && backend.sockets[sockets].connected){
-      return Promise.resolve(backend.sockets[url]);
+    if(backend._socket){
+      return backend._$q.when(backend._socket);
     }
+
+    url = url || '/'
 
     let connectionUrl = url + '?__sails_io_sdk_version=' + SAILS_SDK_VERSION;
 
-    let _rawSocket = backend.io(connectionUrl,options);
+    let _rawSocket = backend._io(connectionUrl,options);
 
-    let _sailsSocket = new SailsSocket(_rawSocket);
-
-    backend.sockets[url] = _sailsSocket;
-
-    if(_sailsSocket.connected){
-      return Promise.resolve(_sailsSocket)
+    if(_rawSocket.connected){
+      return backend._$q.when(_rawSocket);
     }
-    let connection = new Promise(function(onConnect,onConnectError){
+    let connection = backend._$q(function(onConnect,onConnectError){
       _rawSocket.on('connect',function(){
-        onConnect(_sailsSocket);
+        onConnect(_rawSocket);
       });
       _rawSocket.on('connect_error',function(err){
         onConnectError(err);
       });
     });
 
+    backend._socket = connection;
+
     return connection;
   }
 
-  request(url,options){
 
+  fetch(url,options){
+
+    let backend = this;
+
+    let openConnection = backend._socket || backend._connect();
+
+    return openConnection.then((socket) =>{ return backend._fetch(backend._$q,socket,url,options)})
+
+  }
+
+  _fetch($q,socket,url,options){
+
+    var request = new SocketRequest($q,socket,url,options);
+    return request.fetch();
   }
 
 
 }
 
-SocketBackend.$inject = ['$injector']
+SocketBackend.$inject = ['$q','$window','$sailsConfig'];

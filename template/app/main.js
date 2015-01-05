@@ -2,16 +2,26 @@ var app = angular.module('ngSailsApp',['ngSails']);
 
 app.run(function($sails){
 
-  $sails.connect('',{
+  console.log($sails)
 
-  }).then(function(socket){
-    console.log(socket)
-    socket.get('/notification').then(function(res){
-      console.log(res);
-    }).catch(function(err){
-      console.log(err);
-    })
+  $sails
+  .connect()
+  .then(function(socket){
+
+    return $sails.post('/notification',{}).then(function(notification){
+      console.log(notification)
+      return $sails.get('/notification');
+    });
+
+
   })
+  .then(function(notifications){
+    console.log(notifications)
+  })
+  .catch(function(err){
+    console.log(err);
+  })
+
 
 });
 

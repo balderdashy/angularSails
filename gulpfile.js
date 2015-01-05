@@ -5,21 +5,42 @@ var uglify = require('gulp-uglify');
 var ngAnnotate = require('gulp-ng-annotate');
 var transpileES6 = require('gulp-6to5');
 var del = require('del');
+var wrap = require("gulp-wrap");
 
 var karma = require('karma').server;
 
 var paths = {
-  src: ['src/**/*'],
+  src: [
+    'src/Utils.js',
+    'src/Body.js',
+    'src/Headers.js',
+    'src/Request.js',
+    'src/Response.js',
+    'src/HttpRequest.js',
+    'src/SocketRequest.js',
+    'src/SocketResponse.js',
+    'src/SocketBackend.js',
+    'src/NgSails.js'
+  ],
   dest: 'dist',
   vendor: ['vendor'],
   example: 'template/'
 };
 
-gulp.task('compile',['clean'], function () {
-  return gulp.src('src/*.js')
+gulp.task('compile:es5',['clean'], function () {
+  return gulp.src(paths.src)
+  .pipe(transpileES6({
+    modules: 'ignore',
+    blacklist: ['useStrict']
+  }))
   .pipe(concat('ngSails.js'))
-  .pipe(transpileES6())
-  .pipe(gulp.dest('dist'));
+  .pipe(ngAnnotate())
+  // .pipe(uglify({
+  //   minify: true
+  // }))
+  .pipe(wrap('(function(angular,io){\n <%= contents %>  \n})(angular,window.io)'))
+  .pipe(gulp.dest('dist'))
+  .pipe(gulp.dest('template/app'))
 });
 
 gulp.task('example',['clean','compile'],function(){

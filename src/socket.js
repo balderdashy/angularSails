@@ -1,12 +1,6 @@
-function Provide(data){
-  this.data = data;
-}
-
-@Provide('$sailsSocket')
 export class SailsSocket {
-  constructor(socket,config){
-    this._socket = socket;
-    this._config = config;
+  constructor(socketBackend){
+    this._socket = socketBackend;
   }
 
   fetch(url,options){
@@ -18,7 +12,6 @@ export class SailsSocket {
         data: options.data || options.params || {},
         headers: options.headers || {}
       },function(response){
-        console.log(response);
         resolve(response);
       });
     })
@@ -27,7 +20,6 @@ export class SailsSocket {
   get(url,options){
     var socket = this;
     return socket.fetch(url,options).then(function(res){
-      console.log(res);
       return res;
     });
   }
