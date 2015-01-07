@@ -12,5 +12,6 @@ module.exports.models = {
   // i.e. the name of one of your app's connections (see `config/connections.js`)
   //
   // (defaults to localDiskDb)
-  connection: 'localDiskDb'
+  connection: 'localDiskDb',
+  migrate: 'drop'
 };
