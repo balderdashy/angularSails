@@ -12,7 +12,7 @@ export class SocketRequest extends Request {
     var sendRequest = request._$q(function(resolve,reject){
       request._socket.emit(normalizeMethod(request.method,true),{
         url: request.url,
-        data: request.body,
+        data: request._body,
         headers: request.headers
       },function(response){
         var socketResponse = new SocketResponse(response);
