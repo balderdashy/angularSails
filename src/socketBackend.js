@@ -65,8 +65,8 @@ function createSailsBackend($browser, $window, $injector, $q, $timeout){
  * Service used by the $sailsSocket that delegates to a
  * Socket.io connection (or in theory, any connection type eventually)
  *
- * You should never need to use this service directly, instead use the higher-level abstractions:
- * $sailsSocket or $sailsResource.
+ * You should never need to use this service directly, instead use the higher-level abstraction:
+ * $sailsSocket.
  *
  * During testing this implementation is swapped with $sailsMockBackend
  *  which can be trained with responses.
