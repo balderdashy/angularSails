@@ -1258,9 +1258,8 @@ function createSailsBackend($browser, $window, $injector, $q, $timeout){
             method: method.toLowerCase(),
             url: url,
             data: fromJson(post),
-            headers: headers,
-            cb: socketResponse
-        });
+            headers: headers
+        }, socketResponse);
 
     }
 
