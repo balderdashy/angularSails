@@ -1193,7 +1193,11 @@ function $sailsSocketProvider() {
 
                     angular.forEach(value, function(v) {
                         if (isObject(v)) {
+                          if (isDate(v)) {
+                            v = v.toIsoString();
+                          } else {
                             v = toJson(v);
+                          }
                         }
                         parts.push(encodeUriQuery(key) + '=' +
                             encodeUriQuery(v));
@@ -1210,6 +1214,7 @@ function $sailsSocketProvider() {
 }
 
 angular.module('sails.io', []).provider('$sailsSocket',$sailsSocketProvider).provider('$sailsSocketBackend',sailsBackendProvider);
+
 'use strict';
 
 function createSailsBackend($browser, $window, $injector, $q, $timeout){
@@ -1260,8 +1265,9 @@ function createSailsBackend($browser, $window, $injector, $q, $timeout){
 
     //TODO normalize http paths to event names
     connection.subscribe = function(event,handler){
-        $window.io.socket.on(event,tick($window.io.socket,handler));
-        return connection;
+        var callback = tick($window.io.socket,handler);
+        $window.io.socket.on(event,callback);
+        return angular.bind($window.io.socket, $window.io.socket.removeListener, event, callback);
     }
 
     return connection;
