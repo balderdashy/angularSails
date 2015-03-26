@@ -753,7 +753,11 @@ function $sailsSocketProvider() {
 
                     angular.forEach(value, function(v) {
                         if (isObject(v)) {
+                          if (isDate(v)) {
+                            v = v.toIsoString();
+                          } else {
                             v = toJson(v);
+                          }
                         }
                         parts.push(encodeUriQuery(key) + '=' +
                             encodeUriQuery(v));

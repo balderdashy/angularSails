@@ -1,10 +1,12 @@
 {
   "name": "angularSails",
-  "version": "v0.10.0-pre",
+  "version": "0.10.0-pre",
   "description": "SailsJS SDK for AngularJS",
   "main": "index.js",
   "directories": {
-    "doc": "docs"
+    "doc": "docs",
+    "example": "example",
+    "test": "tests"
   },
   "scripts": {
     "test": "grunt build"
@@ -52,5 +54,6 @@
     "grunt-ngdocs": "~0.2.1",
     "grunt-contrib-copy": "^0.5.0"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "author": ""
 }
