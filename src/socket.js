@@ -120,8 +120,6 @@ function $sailsSocketProvider() {
              * The `$sailsSocket` service is the core service that facilitates communication with sails via socket.io
              *
              *
-             * For a higher level of abstraction, please check out the $sailsResource service.
-             *
              * The $sailsSocket API is based on the deferred/promise APIs exposed by
              * the $q service. While for simple usage patterns this doesn't matter much, for advanced usage
              * it is important to familiarize yourself with these APIs and the guarantees they provide.
