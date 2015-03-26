@@ -1,6 +1,6 @@
 {
   "name": "angularSails",
-  "version": "0.10.0-pre",
+  "version": "0.11.0",
   "homepage": "https://github.com/balderdashy/angularSails",
   "authors": [
     "Rob Wormald <rob.wormald@innitapps.com>",
@@ -28,7 +28,6 @@
   },
   "dependencies": {
     "angular": "~1.2.14",
-      "sails.io.js" : "latest",
-    "lodash": "~2.4.1"
+    "sails.io.js" : "latest"
   }
 }

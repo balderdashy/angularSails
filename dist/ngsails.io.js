@@ -60,7 +60,7 @@ angular.module('angularSails.io', [])
  */
     .constant('$$sailsSDKParams', {
 
-        version: '0.10.0',  // TODO: pull this automatically from package.json during build.
+        version: '0.11.0',  // TODO: pull this automatically from package.json during build.
         platform: typeof module === 'undefined' ? 'browser' : 'node',
         language: 'javascript',
         flavor: 'angular'
@@ -411,6 +411,7 @@ angular.module('angularSails.io', [])
             '$get': ['$q', '$timeout', 'SocketIo', '$$sailsSDKInfo', SailsSocketFactory ]
         }
     });
+
 
 /**
  * @ngDoc function
@@ -1257,12 +1258,7 @@ function createSailsBackend($browser, $window, $injector, $q, $timeout){
         url = url || $browser.url();
 
 
-        $window.io.socket._request({
-            method: method.toLowerCase(),
-            url: url,
-            data: fromJson(post),
-            headers: headers
-        }, socketResponse);
+        $window.io.socket[method.toLowerCase()](url,fromJson(post),socketResponse);
 
     }
 
@@ -1288,7 +1284,7 @@ function createSailsBackend($browser, $window, $injector, $q, $timeout){
  * Socket.io connection (or in theory, any connection type eventually)
  *
  * You should never need to use this service directly, instead use the higher-level abstraction:
- * $sailsSocket
+ * $sailsSocket.
  *
  * During testing this implementation is swapped with $sailsMockBackend
  *  which can be trained with responses.
