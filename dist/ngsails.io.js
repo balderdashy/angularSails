@@ -244,10 +244,11 @@ angular.module('angularSails.io', [])
 
                 self._requestQueue = []
 
-                self._socketOptions = options || {}
+                self._socketOptions = angular.extend({}, _socketDefaults, options);
 
                 self._socket = new TmpSocket();
 
+                if (self._socketOptions.autoConnect) self.connect();
             };
 
             SailsSocket.prototype.connect = function (url, opts) {
@@ -282,6 +283,7 @@ angular.module('angularSails.io', [])
                 self._socket.once('connect', connection.resolve);
                 self._socket.on('connecting', connection.notify);
                 self._socket.once('connect_failed', connection.reject);
+                self.connection = connection;
 
                 return connection.promise;
 
@@ -289,7 +291,7 @@ angular.module('angularSails.io', [])
 
             SailsSocket.prototype.isConnected = function () {
 
-                return this._socket.socket.connected;
+                return this.connection && this.connection.promise.$$state.status === 1;
 
             }
 
