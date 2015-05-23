@@ -216,7 +216,7 @@ angular.module('angularSails.io', [])
 
                 // Name of socket request listener on the server
                 // ( === the request method, e.g. 'get', 'post', 'put', etc. )
-                var sailsEndpoint = requestCtx.method;
+                var sailsEndpoint = requestCtx.method.toLowerCase();
 
 
                 socket.emit(sailsEndpoint, requestCtx, tick(socket, function serverResponded(responseCtx) {
