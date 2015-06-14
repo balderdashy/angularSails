@@ -824,7 +824,7 @@ function $sailsSocketProvider() {
                 config.method = uppercase(config.method);
 
                 var xsrfValue = urlIsSameOrigin(config.url)
-                    ? $browser.cookies()[config.xsrfCookieName || defaults.xsrfCookieName]
+                    ? getCookie(config.xsrfCookieName || defaults.xsrfCookieName)
                     : undefined;
                 if (xsrfValue) {
                     headers[(config.xsrfHeaderName || defaults.xsrfHeaderName)] = xsrfValue;
@@ -1209,6 +1209,12 @@ function $sailsSocketProvider() {
                     url += ((url.indexOf('?') == -1) ? '?' : '&') + parts.join('&');
                 }
                 return url;
+            }
+            
+            
+            function getCookie(key) {
+                if (!key) return null;
+                return decodeURIComponent(document.cookie.replace(new RegExp("(?:(?:^|.*;)\\s*" + encodeURIComponent(key).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=\\s*([^;]*).*$)|^.*$"), "$1")) || null;
             }
 
 
