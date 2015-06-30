@@ -1,6 +1,6 @@
 {
   "name": "angularsails",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "description": "SailsJS SDK for AngularJS",
   "main": "dist/ngsails.io.js",
   "directories": {
