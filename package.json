@@ -42,6 +42,7 @@
     "grunt-ng-constant": "~0.4.8",
     "grunt-newer": "~0.6.1",
     "jshint-stylish": "~0.1.5",
+    "karma": "^0.13.0",
     "karma-phantomjs-launcher": "~0.1.2",
     "karma-chrome-launcher": "~0.1.2",
     "karma-firefox-launcher": "~0.1.3",
