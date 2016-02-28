@@ -304,10 +304,10 @@ angular.module('angularSails.io', [])
                 });
             };
 
-            SailsSocket.prototype.post = function (url, data) {
+            SailsSocket.prototype.put = function (url, data) {
 
                 return this._request({
-                    method: 'post',
+                    method: 'put',
                     url: url,
                     data: data
                 });
